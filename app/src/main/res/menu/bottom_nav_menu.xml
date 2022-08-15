@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+<!--    <item-->
+<!--        android:id="@+id/moviesFragment"-->
+<!--        android:icon="@drawable/ic_movie"-->
+<!--        android:title="movies" />-->
+
+    <item
+        android:id="@+id/nearbyFragment"
+        android:icon="@drawable/ic_location"
+        android:title="nearby" />
+
+    <item android:id="@+id/friendsFragment"
+        android:icon="@drawable/ic_people"
+        android:title="friends"
+        />
+</menu>

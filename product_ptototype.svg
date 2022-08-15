@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
+  <rect x="91.223" y="35.396" width="209.496" height="357.41" style="fill: rgb(216, 216, 216); stroke: rgb(0, 0, 0);"/>
+  <rect x="116.547" y="353.669" width="33.381" height="20.144" style="fill: rgb(216, 216, 216); stroke: rgb(0, 0, 0);"/>
+  <rect x="172.374" y="350.791" width="39.137" height="23.597" style="fill: rgb(216, 216, 216); stroke: rgb(0, 0, 0);"/>
+  <rect x="229.928" y="350.791" width="36.835" height="24.748" style="fill: rgb(216, 216, 216); stroke: rgb(0, 0, 0);"/>
+  <text style="white-space: pre; fill: rgb(51, 51, 51); font-family: Arial, sans-serif; font-size: 20.1px;" x="119.424" y="361.151">movie</text>
+  <text style="white-space: pre; fill: rgb(51, 51, 51); font-family: Arial, sans-serif; font-size: 20.1px;" x="185.612" y="360.576">nearby</text>
+</svg>
