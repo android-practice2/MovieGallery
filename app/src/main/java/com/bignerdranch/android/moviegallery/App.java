@@ -6,6 +6,9 @@ import androidx.annotation.NonNull;
 import androidx.hilt.work.HiltWorkerFactory;
 import androidx.work.Configuration;
 
+import com.bignerdranch.android.moviegallery.webrtc.signaling_client.SocketClient;
+import com.bignerdranch.android.moviegallery.webrtc.signaling_client.work.SocketWorkManager;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,6 +25,13 @@ public class App extends Application implements Configuration.Provider {
     @Inject
     HiltWorkerFactory mHiltWorkerFactory;
 
+    @Override
+    public void onCreate() {
+        super.onCreate();
+
+        SocketWorkManager.getInstance().startSocketConnectivityWork(this);
+
+    }
 
     @NonNull
     @Override

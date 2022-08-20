@@ -8,6 +8,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
@@ -22,6 +23,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.FileProvider;
 
+import com.bignerdranch.android.moviegallery.chat.ChatActivity;
 import com.bignerdranch.android.moviegallery.constants.Constants;
 import com.bignerdranch.android.moviegallery.databinding.ActivityPersonDetailBinding;
 import com.bignerdranch.android.moviegallery.integration.AppClient;
@@ -57,13 +59,12 @@ public class PersonDetailActivity extends AppCompatActivity {
     private Uri mUriForFile;
 
     private com.bignerdranch.android.moviegallery.databinding.ActivityPersonDetailBinding mBinding;
-    private int mSelfUid;
+    private int mLoginUid;
     private int mUid;
 
-    public static Intent newIntent(Context context, Integer uid, Integer loginUid) {
+    public static Intent newIntent(Context context, Integer uid) {
         Intent intent = new Intent(context, PersonDetailActivity.class);
         intent.putExtra(Constants.EXTRA_UID, uid);
-        intent.putExtra(Constants.EXTRA_SELF_UID, loginUid);
         return intent;
 
     }
@@ -76,7 +77,9 @@ public class PersonDetailActivity extends AppCompatActivity {
         setContentView(root);
 
         mUid = getIntent().getIntExtra(Constants.EXTRA_UID, -1);
-        mSelfUid = getIntent().getIntExtra(Constants.EXTRA_SELF_UID, -1);
+        mLoginUid = PreferenceManager.getDefaultSharedPreferences(this)
+                .getInt(Constants.PF_UID, -1);
+
         queryUserDetailV2();
 
         mBinding.replaceAvatarButton.setOnClickListener(new View.OnClickListener() {
@@ -96,7 +99,7 @@ public class PersonDetailActivity extends AppCompatActivity {
                     grantUriPermission(resolveInfo.activityInfo.packageName, uri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
                 }
 
-                startActivityForResult(intent, Constants.REQUEST_CODE_CAMERA);
+                startActivityForResult(intent, Constants.RESULT_REQ_CODE_CAMERA);
 
             }
         });
@@ -135,12 +138,12 @@ public class PersonDetailActivity extends AppCompatActivity {
         mBinding.addFriendBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mSelfUid <0) {
+                if (mLoginUid < 0) {
                     Toast.makeText(PersonDetailActivity.this, "mSelfUid should not be null", Toast.LENGTH_SHORT).show();
                     return;
                 }
                 FriendsAddRequest request = new FriendsAddRequest();
-                request.setUid(mSelfUid);
+                request.setUid(mLoginUid);
                 request.setFriend_uid(mUid);
 
                 Call<Void> call = mAppClient.addFriend(request);
@@ -165,15 +168,15 @@ public class PersonDetailActivity extends AppCompatActivity {
         mBinding.chatBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // TODO: 2022/8/14  chat btn click
-
+                Intent intent = ChatActivity.newIntent(PersonDetailActivity.this, mUid);
+                startActivity(intent);
             }
         });
 
     }
 
     private void queryUserDetailV2() {
-        Call<UserGetDetailV2Response> call = mAppClient.getDetailV2(mUid, mSelfUid);
+        Call<UserGetDetailV2Response> call = mAppClient.getDetailV2(mUid, mLoginUid);
         call.enqueue(new Callback<UserGetDetailV2Response>() {
             @Override
             public void onResponse(Call<UserGetDetailV2Response> call, Response<UserGetDetailV2Response> response) {
@@ -229,7 +232,7 @@ public class PersonDetailActivity extends AppCompatActivity {
         if (resultCode != Activity.RESULT_OK) {
             return;
         }
-        if (requestCode == Constants.REQUEST_CODE_CAMERA) {
+        if (requestCode == Constants.RESULT_REQ_CODE_CAMERA) {
             Uri uri = buildUriForFile();
             revokeUriPermission(uri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
 

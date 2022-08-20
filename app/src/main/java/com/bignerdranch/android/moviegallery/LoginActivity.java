@@ -17,6 +17,7 @@ import com.bignerdranch.android.moviegallery.constants.Constants;
 import com.bignerdranch.android.moviegallery.integration.AppClient;
 import com.bignerdranch.android.moviegallery.integration.model.User;
 import com.bignerdranch.android.moviegallery.integration.model.UserRegisterRequest;
+import com.bignerdranch.android.moviegallery.webrtc.signaling_client.work.SocketWorkManager;
 
 import javax.inject.Inject;
 
@@ -62,6 +63,10 @@ public class LoginActivity extends AppCompatActivity {
                         data.putExtra(Constants.EXTRA_USER, user);
 
                         setResult(Activity.RESULT_OK, data);
+
+                        SocketWorkManager.getInstance().startSocketConnectivityWork(getApplicationContext());
+
+
                         finish();
                     }
 
@@ -80,5 +85,6 @@ public class LoginActivity extends AppCompatActivity {
 
 
     }
+
 
 }

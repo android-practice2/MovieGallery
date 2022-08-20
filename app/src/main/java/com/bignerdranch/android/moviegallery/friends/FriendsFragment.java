@@ -1,10 +1,12 @@
 package com.bignerdranch.android.moviegallery.friends;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -20,6 +22,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.bignerdranch.android.moviegallery.MyLoadStateAdapter;
+import com.bignerdranch.android.moviegallery.PersonDetailActivity;
 import com.bignerdranch.android.moviegallery.R;
 import com.bignerdranch.android.moviegallery.constants.Constants;
 import com.bignerdranch.android.moviegallery.databinding.FragmentFriendsBinding;
@@ -28,8 +31,6 @@ import com.bignerdranch.android.moviegallery.integration.AppClient;
 import com.bignerdranch.android.moviegallery.integration.model.User;
 import com.bignerdranch.android.moviegallery.util.UserDiff;
 import com.bumptech.glide.Glide;
-
-import java.util.zip.Inflater;
 
 import javax.inject.Inject;
 
@@ -115,7 +116,16 @@ public class FriendsFragment extends Fragment {
         public FriendsViewHolder(@NonNull ViewGroup parent) {
             super(LayoutInflater.from(getActivity()).inflate(R.layout.view_holder_friends, parent, false));
             mBind = ViewHolderFriendsBinding.bind(super.itemView);
+            super.itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    TextView uid_text = v.findViewById(R.id.uid);
+                    int uid = Integer.parseInt(uid_text.getText().toString());
+                    Intent intent = PersonDetailActivity.newIntent(getActivity(), uid);
+                    startActivity(intent);
 
+                }
+            });
 
         }
 

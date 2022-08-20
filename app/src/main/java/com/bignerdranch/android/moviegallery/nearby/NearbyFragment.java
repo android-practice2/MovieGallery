@@ -287,7 +287,7 @@ public class NearbyFragment extends Fragment {
                 public void onClick(View v) {
                     TextView uid_text=  v.findViewById(R.id.uid);
                     int uid = Integer.parseInt(uid_text.getText().toString());
-                    Intent intent = PersonDetailActivity.newIntent(getActivity(),uid,mUid);
+                    Intent intent = PersonDetailActivity.newIntent(getActivity(), uid);
                     startActivity(intent);
 
 

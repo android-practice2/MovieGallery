@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <org.webrtc.SurfaceViewRenderer
+        android:id="@+id/remote_surface"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <org.webrtc.SurfaceViewRenderer
+        android:id="@+id/local_surface"
+        android:layout_width="120dp"
+        android:layout_height="150dp"
+        android:elevation="16dp"
+        android:layout_margin="8dp"
+        android:layout_above="@+id/controls"
+
+        />
+    <!--    <ProgressBar-->
+    <!--        android:id="@+id/loading_progress_bar"-->
+    <!--        android:layout_width="wrap_content"-->
+    <!--        android:layout_height="wrap_content"-->
+    <!--        android:layout_centerInParent="true"-->
+    <!--        android:indeterminate="true"-->
+    <!--        />-->
+
+    <LinearLayout
+        android:id="@+id/controls"
+        android:background="@drawable/curve_background"
+        android:backgroundTint="@android:color/secondary_text_light"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+
+        >
+
+        <ImageView
+            android:id="@+id/mic_button"
+            android:background="@drawable/circle_background"
+            android:backgroundTint="@color/cardview_dark_background"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:padding="12dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:src="@drawable/ic_baseline_mic_24"
+            android:layout_gravity="center_vertical" />
+
+        <ImageView
+            android:id="@+id/video_button"
+            android:background="@drawable/circle_background"
+            android:backgroundTint="@color/cardview_dark_background"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:padding="12dp"
+            android:clickable="true"
+            android:focusable="true"
+            app:srcCompat="@drawable/ic_baseline_videocam_24"
+            android:layout_gravity="center_vertical" />
+
+        <ImageView
+            android:id="@+id/end_call_button"
+            android:background="@drawable/circle_background"
+            android:backgroundTint="@android:color/holo_red_dark"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:padding="12dp"
+            android:clickable="true"
+            android:focusable="true"
+            app:srcCompat="@drawable/ic_baseline_call_end_24"
+            android:layout_gravity="center_vertical" />
+
+        <ImageView
+            android:id="@+id/flip_camera_button"
+            android:background="@drawable/circle_background"
+            android:backgroundTint="@color/cardview_dark_background"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:padding="12dp"
+            android:clickable="true"
+            android:focusable="true"
+            app:srcCompat="@drawable/ic_baseline_flip_camera_android_24"
+            android:layout_gravity="center_vertical" />
+
+        <ImageView
+            android:id="@+id/volume_button"
+            android:background="@drawable/circle_background"
+            android:backgroundTint="@color/cardview_dark_background"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:padding="12dp"
+            android:clickable="true"
+            android:focusable="true"
+            app:srcCompat="@drawable/ic_baseline_volume_up_24"
+            android:layout_gravity="center_vertical" />
+
+
+    </LinearLayout>
+
+</RelativeLayout>
