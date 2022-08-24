@@ -1,6 +1,7 @@
 package com.bignerdranch.android.moviegallery.constants;
 
 public class Constants {
+
     //    ############### paging
     public static final int PAGE_SIZE = 10;
     public static final int DEFAULT_PAGE = 1;

@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.util.Log;
 
 import com.bignerdranch.android.moviegallery.chat.VideoActivity;
+import com.bignerdranch.android.moviegallery.constants.Constants;
 import com.bignerdranch.android.moviegallery.util.JsonUtil;
 import com.bignerdranch.android.moviegallery.webrtc.signaling_client.constants.EventConstants;
 import com.bignerdranch.android.moviegallery.webrtc.signaling_client.model.ByeRequest;
@@ -25,7 +26,7 @@ import io.socket.emitter.Emitter;
 public class SocketClient {
     private static final String TAG = "SocketClient";
 
-    private static final String SIGNALING_SERVER_URL = "http://192.168.0.100:8181/";
+    private static final String SIGNALING_SERVER_URL = "https://socialme.hopto.org/";
     private Socket mSocket;
     private RoomCallback mRoomCallback;
     private SignalingCallback mSignalingCallback;
@@ -134,13 +135,6 @@ public class SocketClient {
                         mRoomCallback.onCreated(args);
                     }
                 })
-                .on(EventConstants.BUSY, new Emitter.Listener() {
-                    @Override
-                    public void call(Object... args) {
-                        Log.i(TAG, "onBusy" + " " + args[0]);
-                        mRoomCallback.onBusy(args);
-                    }
-                })
                 .on(EventConstants.JOINED, new Emitter.Listener() {
                     @Override
                     public void call(Object... args) {
@@ -148,6 +142,13 @@ public class SocketClient {
 
                         mRoomCallback.onJoined(args);
 
+                    }
+                })
+                .on(EventConstants.BUSY, new Emitter.Listener() {
+                    @Override
+                    public void call(Object... args) {
+                        Log.i(TAG, "onBusy" + " " + args[0]);
+                        mRoomCallback.onBusy(args);
                     }
                 })
 

@@ -60,7 +60,7 @@ public class LoginActivity extends AppCompatActivity {
                         Toast.makeText(LoginActivity.this, "register user success", Toast.LENGTH_SHORT).show();
                         User user = response.body();
                         Intent data = new Intent();
-                        data.putExtra(Constants.EXTRA_USER, user);
+                        data.putExtra(Constants.EXTRA_UID, user.getUid());
 
                         setResult(Activity.RESULT_OK, data);
 

@@ -6,8 +6,11 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.util.Log;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
+import android.view.WindowManager;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -19,11 +22,10 @@ import com.bignerdranch.android.moviegallery.R;
 import com.bignerdranch.android.moviegallery.constants.Constants;
 import com.bignerdranch.android.moviegallery.databinding.ActivityVideoBinding;
 import com.bignerdranch.android.moviegallery.webrtc.WebRTCClient;
+import com.bignerdranch.android.moviegallery.webrtc.WebRTCDataChannel;
 import com.bignerdranch.android.moviegallery.webrtc.signaling_client.SocketClient;
 import com.bignerdranch.android.moviegallery.webrtc.signaling_client.model.ByeRequest;
 import com.bignerdranch.android.moviegallery.webrtc.signaling_client.model.CallRequest;
-
-import java.util.Arrays;
 
 public class VideoActivity extends AppCompatActivity {
 
@@ -51,6 +53,8 @@ public class VideoActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         mBinding = ActivityVideoBinding.inflate(getLayoutInflater());
         setContentView(mBinding.getRoot());
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
         SocketClient.setRoomCallback(new SocketRoomCallback());
 
 
@@ -61,12 +65,21 @@ public class VideoActivity extends AppCompatActivity {
         mRoom = getIntent().getStringExtra(Constants.EXTRA_ROOM);
         mIsInitiator = getIntent().getBooleanExtra(Constants.EXTRA_IS_INITIATOR, false);
 
+        if (mIsInitiator) {
+            call();
+        }
+
         requestPermission();
 
         setupViewBehavior();
 
-        call();
+    }
 
+    @Override
+    protected void onDestroy() {
+        mWebRTCClient.endCall();
+
+        super.onDestroy();
 
     }
 
@@ -140,7 +153,49 @@ public class VideoActivity extends AppCompatActivity {
             }
         });
 
+        setupMessagingViewBehavior();
 
+
+    }
+
+    private void setupMessagingViewBehavior() {
+        if (WebRTCClient.FEATURE_DATA_CHANNEL_ENABLE) {
+            mBinding.messageReceived.setVisibility(View.GONE);
+            mBinding.messageLayout.setVisibility(View.VISIBLE);
+            mBinding.sendBtn.setVisibility(View.GONE);
+
+            mBinding.messageText.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+                }
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+                }
+
+                @Override
+                public void afterTextChanged(Editable s) {
+                    mBinding.sendBtn.setVisibility(View.VISIBLE);
+                }
+            });
+
+
+            mBinding.sendBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    String message = mBinding.messageText.getText().toString();
+                    mWebRTCClient.sendMessage(message);
+                    mBinding.messageText.setText("");
+                }
+            });
+
+        } else {
+            mBinding.messageReceived.setVisibility(View.GONE);
+            mBinding.messageLayout.setVisibility(View.GONE);
+
+        }
     }
 
     public static class ControlState {
@@ -161,16 +216,23 @@ public class VideoActivity extends AppCompatActivity {
                     Constants.PERM_REQ_CODE_CAMERA_AUDIO);
 
         } else {
-            mWebRTCClient = new WebRTCClient(getApplication(),
-                    mBinding.localSurface,
-                    mBinding.remoteSurface,
-                    mRoom
-            );
+            instantiateWebRTC();
 
-            if (mIsInitiator) {
-                mWebRTCClient.start();
-            }
+        }
+    }
 
+    private void instantiateWebRTC() {
+        mWebRTCClient = new WebRTCClient(getApplication(),
+                mBinding.localSurface,
+                mBinding.remoteSurface,
+                mRoom,
+                new WebRTCMessagingCallback()
+        );
+    }
+
+    private void startWebRTC() {
+        if (mIsInitiator) {
+            mWebRTCClient.start();
         }
     }
 
@@ -193,35 +255,49 @@ public class VideoActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onBusy(Object... args) {
-
-        }
-
-        @Override
-        public void onOffline(Object... args) {
-
-        }
-
-        @Override
         public void onJoined(Object... args) {
 
         }
 
         @Override
         public void onReady(Object... args) {
-
+            startWebRTC();
         }
 
         @Override
-        public void onPeer_leaved(Object... args) {
+        public void onBusy(Object... args) {
+            Toast.makeText(VideoActivity.this, "busy", Toast.LENGTH_SHORT).show();
+            mWebRTCClient.endCall();
+        }
 
+        @Override
+        public void onOffline(Object... args) {
+            Toast.makeText(VideoActivity.this, "offline", Toast.LENGTH_SHORT).show();
+            mWebRTCClient.endCall();
+
+        }
+
+
+
+        @Override
+        public void onPeer_leaved(Object... args) {
+            Toast.makeText(VideoActivity.this, "left", Toast.LENGTH_SHORT).show();
+            mWebRTCClient.endCall();
         }
 
         @Override
         public void onBye(Object... args) {
-
+            Toast.makeText(VideoActivity.this, "bye", Toast.LENGTH_SHORT).show();
+            mWebRTCClient.endCall();
         }
     }
 
+    public class WebRTCMessagingCallback implements WebRTCDataChannel.MessagingCallback {
+        @Override
+        public void onMessage(String message) {
+            mBinding.messageReceived.setVisibility(View.VISIBLE);
+            mBinding.messageReceived.setText(message);
+        }
+    }
 
 }

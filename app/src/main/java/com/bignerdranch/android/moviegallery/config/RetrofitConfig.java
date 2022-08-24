@@ -1,6 +1,7 @@
 package com.bignerdranch.android.moviegallery.config;
 
 import com.bignerdranch.android.moviegallery.BuildConfig;
+import com.bignerdranch.android.moviegallery.constants.Constants;
 import com.bignerdranch.android.moviegallery.integration.AppClient;
 import com.bignerdranch.android.moviegallery.integration.TMDBClient;
 
@@ -20,7 +21,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class RetrofitConfig {
     //    String BASE_URL = "http://10.0.2.2/api/";
-    public static final String BASE_URL = "http://192.168.0.100/api/";
+    public static final String BASE_URL = "https://socialme.hopto.org/api/";
 
     @Module
     @InstallIn(SingletonComponent.class)

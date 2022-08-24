@@ -22,10 +22,13 @@ import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
+import androidx.paging.CombinedLoadStates;
+import androidx.paging.LoadState;
 import androidx.paging.PagingDataAdapter;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.bignerdranch.android.moviegallery.LoginActivity;
 import com.bignerdranch.android.moviegallery.MyLoadStateAdapter;
@@ -45,6 +48,8 @@ import java.util.List;
 import javax.inject.Inject;
 
 import dagger.hilt.android.AndroidEntryPoint;
+import kotlin.Unit;
+import kotlin.jvm.functions.Function1;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -66,7 +71,7 @@ public class NearbyFragment extends Fragment {
     public static final int REQ_CODE_PERMISSION = 1;
     @Inject
     AppClient mAppClient;
-    private Integer mUid = -1;
+    private int mUid = -1;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -85,11 +90,17 @@ public class NearbyFragment extends Fragment {
         View inflate = inflater.inflate(R.layout.fragment_nearby, container, false);
         mViewModel = new ViewModelProvider(this).get(NearbyViewModel.class);
         mBinding = FragmentNearbyBinding.bind(inflate);
+        mBinding.swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                mAdapter.refresh();
+            }
+        });
         //login
         if (mUid < 0) {
             Intent intent = LoginActivity.newIntent(getActivity());
             startActivityForResult(intent, REQUEST_CODE_LOGIN);
-        }else{
+        } else {
             acquireLocation();
 
             bindPaging();
@@ -103,8 +114,7 @@ public class NearbyFragment extends Fragment {
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         Log.i(TAG, "onActivityResult");
         if (resultCode == Activity.RESULT_OK && requestCode == REQUEST_CODE_LOGIN) {
-            User user = (User) data.getSerializableExtra(Constants.EXTRA_USER);
-            mUid = user.getUid();
+            mUid = data.getIntExtra(Constants.EXTRA_UID, -1);
             PreferenceManager.getDefaultSharedPreferences(getActivity())
                     .edit()
                     .putInt(Constants.PF_UID, mUid)
@@ -166,6 +176,15 @@ public class NearbyFragment extends Fragment {
         );
         mViewModel.subscribe(mAdapter, this);
 
+        mAdapter.addLoadStateListener(new Function1<CombinedLoadStates, Unit>() {
+            @Override
+            public Unit invoke(CombinedLoadStates combinedLoadStates) {
+                if (combinedLoadStates.getRefresh() instanceof LoadState.NotLoading) {
+                    mBinding.swipeRefreshLayout.setRefreshing(false);
+                }
+                return Unit.INSTANCE;
+            }
+        });
 
     }
 

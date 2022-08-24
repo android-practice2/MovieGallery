@@ -5,9 +5,9 @@ import android.util.Log;
 
 import com.bignerdranch.android.moviegallery.util.JsonUtil;
 import com.bignerdranch.android.moviegallery.webrtc.model.IceCandidateDTO;
+import com.bignerdranch.android.moviegallery.webrtc.model.SessionDescriptionDTO;
 import com.bignerdranch.android.moviegallery.webrtc.signaling_client.SocketClient;
 import com.bignerdranch.android.moviegallery.webrtc.signaling_client.constants.SinglingConstants;
-import com.bignerdranch.android.moviegallery.webrtc.model.SessionDescriptionDTO;
 import com.bignerdranch.android.moviegallery.webrtc.signaling_client.model.SignalingMessage;
 
 import org.json.JSONObject;
@@ -36,10 +36,13 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class WebRTCClient {
+    public static final boolean FEATURE_DATA_CHANNEL_ENABLE = true;
     public static final int VIDEO_RESOLUTION_WIDTH = 320;
     public static final int VIDEO_RESOLUTION_HEIGHT = 240;
     public static final int FPS = 60;
-    public static final String STUN_SERVER_URL = "stun:stun.l.google.com:19302";
+    //    public static final String STUN_SERVER_URL = "stun:stun.l.google.com:19302";
+    public static final String STUN_SERVER_URL = "stun:socialme.hopto.org:3478"; //not ssl
+    private final Application mApplicationContext;
     private SocketClient mSocketClient = SocketClient.getInstance();
     // webrtc component
     private EglBase mEglBase;
@@ -61,11 +64,17 @@ public class WebRTCClient {
     private String room;
     private MediaStream mRemoteMediaStream;
 
+    // dataChannel
+    private WebRTCDataChannel mWebRTCDataChannel;
+
+
     public WebRTCClient(Application applicationContext,
                         SurfaceViewRenderer localSurfaceViewRenderer,
                         SurfaceViewRenderer remoteSurfaceViewRenderer,
-                        String room
+                        String room,
+                        WebRTCDataChannel.MessagingCallback messagingCallback
     ) {
+        this.mApplicationContext = applicationContext;
         this.localSurfaceViewRenderer = localSurfaceViewRenderer;
         this.remoteSurfaceViewRenderer = remoteSurfaceViewRenderer;
         this.room = room;
@@ -79,8 +88,8 @@ public class WebRTCClient {
                 .createInitializationOptions();
         PeerConnectionFactory.initialize(initializationOptions);
         PeerConnectionFactory.Options factoryOptions = new PeerConnectionFactory.Options();
-        factoryOptions.disableEncryption = true;
-        factoryOptions.disableNetworkMonitor = true;
+//        factoryOptions.disableEncryption = true;  // should not set true for dataChannel
+//        factoryOptions.disableNetworkMonitor = true;
         mPeerConnectionFactory = PeerConnectionFactory.builder()
                 .setVideoEncoderFactory(new DefaultVideoEncoderFactory(mEglBase.getEglBaseContext(), true, true))
                 .setVideoDecoderFactory(new DefaultVideoDecoderFactory(mEglBase.getEglBaseContext()))
@@ -100,6 +109,7 @@ public class WebRTCClient {
         for (String deviceName : camera2Enumerator.getDeviceNames()) {
             boolean frontFacing = camera2Enumerator.isFrontFacing(deviceName);
             if (frontFacing) {
+                Log.i(getClass().getSimpleName(), "camera_deviceName:" + deviceName);
                 mCameraVideoCapturer = camera2Enumerator.createCapturer(deviceName, null);
                 break;
             }
@@ -119,14 +129,24 @@ public class WebRTCClient {
 
         startStreamingLocal();
 
+        if (FEATURE_DATA_CHANNEL_ENABLE) {
+            mWebRTCDataChannel = new WebRTCDataChannel(mPeerConnection, messagingCallback);
+        }
+
 
     }
+
 
     public void start() {
 
         startSignaling();
 
+        if (FEATURE_DATA_CHANNEL_ENABLE) {
+            mWebRTCDataChannel.setupDataChannel();
+
+        }
     }
+
 
     private void startSignaling() {
         MediaConstraints constraints = new MediaConstraints();
@@ -191,7 +211,16 @@ public class WebRTCClient {
         if (mPeerConnection == null) {
             return;
         }
+        localSurfaceViewRenderer.release();
+        remoteSurfaceViewRenderer.release();
+        mVideoTrack.dispose();
+        mAudioTrack.dispose();
+        mVideoSource.dispose();
+        mAudioSource.dispose();
+        mCameraVideoCapturer.dispose();
+
         mPeerConnection.close();
+        mPeerConnection = null;
     }
 
     public void setVolume(boolean enable) {
@@ -204,6 +233,11 @@ public class WebRTCClient {
 
     public void flipCamera() {
         mCameraVideoCapturer.switchCamera(null);
+    }
+
+    public void sendMessage(String message) {
+        mWebRTCDataChannel.sendData(message);
+
     }
 
     public class SocketSignalingCallback implements SocketClient.SignalingCallback {
@@ -319,6 +353,7 @@ public class WebRTCClient {
         @Override
         public void onDataChannel(DataChannel dataChannel) {
             Log.i(getClass().getSimpleName(), "onDataChannel" + " " + dataChannel);
+            mWebRTCDataChannel.setupDataChannel(dataChannel);
 
         }
 
@@ -334,4 +369,6 @@ public class WebRTCClient {
 
         }
     }
+
+
 }
