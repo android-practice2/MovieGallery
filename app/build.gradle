@@ -131,5 +131,10 @@ dependencies {
 //    webrtc
     implementation 'io.socket:socket.io-client:2.0.1'
     implementation 'org.webrtc:google-webrtc:1.0.32006'
+
+    //logging
+    implementation 'org.slf4j:slf4j-api:1.7.25'
+    implementation 'com.github.tony19:logback-android:2.0.0'
+    implementation 'org.slf4j:jul-to-slf4j:1.7.22'
 }
 

@@ -6,14 +6,14 @@ import androidx.annotation.NonNull;
 import androidx.hilt.work.HiltWorkerFactory;
 import androidx.work.Configuration;
 
-import com.bignerdranch.android.moviegallery.webrtc.signaling_client.SocketClient;
 import com.bignerdranch.android.moviegallery.webrtc.signaling_client.work.SocketWorkManager;
+
+import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.inject.Inject;
-import javax.inject.Singleton;
 
 import dagger.hilt.android.HiltAndroidApp;
 
@@ -28,10 +28,21 @@ public class App extends Application implements Configuration.Provider {
     @Override
     public void onCreate() {
         super.onCreate();
+        enableSocketLiveness();
 
-        SocketWorkManager.getInstance().startSocketConnectivityWork(this);
+        enableJULToSLF4J();
 
     }
+
+    private void enableSocketLiveness() {
+        SocketWorkManager.getInstance().startSocketConnectivityWork(this);
+    }
+
+    private void enableJULToSLF4J() {
+        SLF4JBridgeHandler.removeHandlersForRootLogger();
+        SLF4JBridgeHandler.install();
+    }
+
 
     @NonNull
     @Override

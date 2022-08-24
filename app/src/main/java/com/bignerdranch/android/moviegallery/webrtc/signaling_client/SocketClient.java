@@ -93,7 +93,12 @@ public class SocketClient {
     private void doEnsureSocket(Context context, Integer uid) {
         if (mSocket == null) {
             try {
-                mSocket = IO.socket(SIGNALING_SERVER_URL + "?uid=" + uid);
+                IO.Options opts = IO.Options.builder()
+                        .setReconnection(true)
+                        .setReconnectionAttempts(5)
+                        .setReconnectionDelayMax(10000)
+                        .build();
+                mSocket = IO.socket(SIGNALING_SERVER_URL + "?uid=" + uid, opts);
             } catch (URISyntaxException e) {
                 e.printStackTrace();
             }
@@ -206,7 +211,7 @@ public class SocketClient {
                     @Override
                     public void call(Object... args) {
                         Log.i(TAG, "onDisconnect" + " " + Arrays.toString(args));
-                        mSocket.connect();
+//                        mSocket.connect();  //already configed auto reconnect
                     }
                 })
 

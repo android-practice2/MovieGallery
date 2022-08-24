@@ -1,0 +1,28 @@
+<configuration>
+    <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator">
+        <!-- reset all previous level configurations of all j.u.l. loggers -->
+        <resetJUL>true</resetJUL>
+    </contextListener>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>[%d{HH:mm:ss.SSS}] [%thread] [%-5level %logger{26} - %msg]%n
+            </pattern>
+        </encoder>
+    </appender>
+    <appender name="logcat" class="ch.qos.logback.classic.android.LogcatAppender">
+        <tagEncoder>
+            <pattern>%logger{12}</pattern>
+        </tagEncoder>
+        <encoder>
+            <pattern>[%-20thread] %msg</pattern>
+        </encoder>
+    </appender>
+
+    <root level="DEBUG">
+        <appender-ref ref="logcat" />
+        <appender-ref ref="STDOUT" />
+    </root>
+
+    <!--    <logger name="io.socket.client.Socket" level="DEBUG"  />--> <!-- if root level DEBUG, here not needed  -->
+    <!--    <logger name="io.socket.client.Manager" level="DEBUG"  />-->
+</configuration>
