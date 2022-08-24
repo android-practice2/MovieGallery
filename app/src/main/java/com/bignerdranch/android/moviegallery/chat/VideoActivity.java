@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Toast;
@@ -266,29 +267,34 @@ public class VideoActivity extends AppCompatActivity {
 
         @Override
         public void onBusy(Object... args) {
-            Toast.makeText(VideoActivity.this, "busy", Toast.LENGTH_SHORT).show();
-            mWebRTCClient.endCall();
+            if (mWebRTCClient != null) {
+                mWebRTCClient.endCall();
+            }
         }
 
         @Override
         public void onOffline(Object... args) {
-            Toast.makeText(VideoActivity.this, "offline", Toast.LENGTH_SHORT).show();
-            mWebRTCClient.endCall();
+            if (mWebRTCClient != null) {
+                mWebRTCClient.endCall();
+
+            }
 
         }
-
 
 
         @Override
         public void onPeer_leaved(Object... args) {
-            Toast.makeText(VideoActivity.this, "left", Toast.LENGTH_SHORT).show();
-            mWebRTCClient.endCall();
+            if (mWebRTCClient != null) {
+                mWebRTCClient.endCall();
+
+            }
         }
 
         @Override
         public void onBye(Object... args) {
-            Toast.makeText(VideoActivity.this, "bye", Toast.LENGTH_SHORT).show();
-            mWebRTCClient.endCall();
+            if (mWebRTCClient != null) {
+                mWebRTCClient.endCall();
+            }
         }
     }
 

@@ -4,8 +4,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
 import com.bignerdranch.android.moviegallery.chat.VideoActivity;
-import com.bignerdranch.android.moviegallery.constants.Constants;
 import com.bignerdranch.android.moviegallery.util.JsonUtil;
 import com.bignerdranch.android.moviegallery.webrtc.signaling_client.constants.EventConstants;
 import com.bignerdranch.android.moviegallery.webrtc.signaling_client.model.ByeRequest;
@@ -18,10 +19,16 @@ import org.json.JSONObject;
 
 import java.net.URISyntaxException;
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
 import io.socket.client.IO;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
+import okhttp3.Call;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.WebSocket;
+import okhttp3.WebSocketListener;
 
 public class SocketClient {
     private static final String TAG = "SocketClient";
@@ -93,11 +100,36 @@ public class SocketClient {
     private void doEnsureSocket(Context context, Integer uid) {
         if (mSocket == null) {
             try {
-                IO.Options opts = IO.Options.builder()
-                        .setReconnection(true)
-                        .setReconnectionAttempts(5)
-                        .setReconnectionDelayMax(10000)
+                OkHttpClient okHttpClient = new OkHttpClient.Builder()
+//                        .hostnameVerifier(hostnameVerifier)
+//                        .sslSocketFactory((SSLSocketFactory) SSLSocketFactory.getDefault(), trustManager)
+                        .connectTimeout(2, TimeUnit.SECONDS)
+                        .writeTimeout(3, TimeUnit.SECONDS)//if HTTP long-polling, above the `pingInterval + pingTimeout` value from the server
+                        .readTimeout(3, TimeUnit.SECONDS)//if HTTP long-polling, HTTP long-polling above the `pingInterval + pingTimeout` value from the server
                         .build();
+                IO.setDefaultOkHttpCallFactory(new Call.Factory() {
+                    @NonNull
+                    @Override
+                    public Call newCall(@NonNull Request request) {
+                        return okHttpClient.newCall(request);
+                    }
+                });
+                IO.setDefaultOkHttpWebSocketFactory(new WebSocket.Factory() {
+                    @NonNull
+                    @Override
+                    public WebSocket newWebSocket(@NonNull Request request, @NonNull WebSocketListener webSocketListener) {
+                        return okHttpClient.newWebSocket(request, webSocketListener);
+                    }
+                });
+
+                IO.Options opts = new IO.Options();
+                opts.reconnection = true;
+                opts.reconnectionAttempts = 1;
+                opts.reconnectionDelay = 2000;
+                opts.reconnectionDelayMax = 10000;
+                opts.timeout = 3000;//connection timeout
+                opts.transports = new String[]{io.socket.engineio.client.transports.WebSocket.NAME};
+
                 mSocket = IO.socket(SIGNALING_SERVER_URL + "?uid=" + uid, opts);
             } catch (URISyntaxException e) {
                 e.printStackTrace();
@@ -119,7 +151,7 @@ public class SocketClient {
                 .on(EventConstants.JOIN, new Emitter.Listener() {
                     @Override
                     public void call(Object... args) {
-                        Log.i(TAG, "onJoin" + " " + args[0]);
+                        Log.i(TAG, "onJoin" + " " + Arrays.toString(args));
                         JoinServerPush joinServerPush = (JoinServerPush) args[0];
                         Integer peerUid = joinServerPush.getPeerUid();
                         String room = joinServerPush.getRoom();
@@ -136,14 +168,14 @@ public class SocketClient {
                 .on(EventConstants.CREATED, new Emitter.Listener() {
                     @Override
                     public void call(Object... args) {
-                        Log.i(TAG, "onCreated" + " " + args[0]);
+                        Log.i(TAG, "onCreated" + " " + Arrays.toString(args));
                         mRoomCallback.onCreated(args);
                     }
                 })
                 .on(EventConstants.JOINED, new Emitter.Listener() {
                     @Override
                     public void call(Object... args) {
-                        Log.i(TAG, "onJoined" + " " + args[0]);
+                        Log.i(TAG, "onJoined" + " " + Arrays.toString(args));
 
                         mRoomCallback.onJoined(args);
 
@@ -152,7 +184,7 @@ public class SocketClient {
                 .on(EventConstants.BUSY, new Emitter.Listener() {
                     @Override
                     public void call(Object... args) {
-                        Log.i(TAG, "onBusy" + " " + args[0]);
+                        Log.i(TAG, "onBusy" + " " + Arrays.toString(args));
                         mRoomCallback.onBusy(args);
                     }
                 })
@@ -160,28 +192,28 @@ public class SocketClient {
                 .on(EventConstants.READY, new Emitter.Listener() {
                     @Override
                     public void call(Object... args) {
-                        Log.i(TAG, "onReady" + " " + args[0]);
+                        Log.i(TAG, "onReady" + " " + Arrays.toString(args));
                         mRoomCallback.onReady(args);
 
                     }
                 }).on(EventConstants.OFFLINE, new Emitter.Listener() {
                     @Override
                     public void call(Object... args) {
-                        Log.i(TAG, "onOffline" + " " + args[0]);
+                        Log.i(TAG, "onOffline" + " " + Arrays.toString(args));
                         mRoomCallback.onOffline(args);
 
                     }
                 }).on(EventConstants.PEER_LEAVED, new Emitter.Listener() {
                     @Override
                     public void call(Object... args) {
-                        Log.i(TAG, "onPeer_leaved" + " " + args[0]);
+                        Log.i(TAG, "onPeer_leaved" + " " + Arrays.toString(args));
                         mRoomCallback.onPeer_leaved(args);
 
                     }
                 }).on(EventConstants.BYE, new Emitter.Listener() {
                     @Override
                     public void call(Object... args) {
-                        Log.i(TAG, "onBye" + " " + args[0]);
+                        Log.i(TAG, "onBye" + " " + Arrays.toString(args));
                         String room = (String) args[0];
 
                         ByeRequest request = new ByeRequest();
@@ -195,7 +227,7 @@ public class SocketClient {
                 }).on(EventConstants.MESSAGE, new Emitter.Listener() {
                     @Override
                     public void call(Object... args) {
-                        Log.i(TAG, "onMessage" + " " + args[0]);
+                        Log.i(TAG, "onMessage" + " " + Arrays.toString(args));
                         JSONObject jsonObject = (JSONObject) args[0];
                         SignalingMessage signalingMessage = JsonUtil.fromJsonObject(jsonObject, SignalingMessage.class);
                         mSignalingCallback.onMessage(signalingMessage);

@@ -23,6 +23,6 @@
         <appender-ref ref="STDOUT" />
     </root>
 
-    <!--    <logger name="io.socket.client.Socket" level="DEBUG"  />--> <!-- if root level DEBUG, here not needed  -->
-    <!--    <logger name="io.socket.client.Manager" level="DEBUG"  />-->
+    <!--        <logger name="io.socket.client.Socket" level="DEBUG"  />  if root level DEBUG, here not needed-->
+    <!--        <logger name="io.socket.client.Manager" level="DEBUG"  />-->
 </configuration>
