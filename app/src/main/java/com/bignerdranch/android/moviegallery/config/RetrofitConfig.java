@@ -5,6 +5,9 @@ import com.bignerdranch.android.moviegallery.constants.Constants;
 import com.bignerdranch.android.moviegallery.integration.AppClient;
 import com.bignerdranch.android.moviegallery.integration.TMDBClient;
 
+import java.time.Duration;
+import java.util.concurrent.TimeUnit;
+
 import javax.inject.Singleton;
 
 import dagger.Module;
@@ -33,12 +36,16 @@ public class RetrofitConfig {
         public static TMDBClient sTMDBClient() {
 
             // Create OkHttp Client
-            OkHttpClient.Builder client = new OkHttpClient.Builder();
+            OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder();
+            clientBuilder.connectTimeout(3000, TimeUnit.MILLISECONDS);
+            clientBuilder.readTimeout(3000, TimeUnit.MILLISECONDS);
+            clientBuilder.writeTimeout(3000, TimeUnit.MILLISECONDS);
+
             // Add interceptor to add API key as query string parameter to each request
             HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor(HttpLoggingInterceptor.Logger.DEFAULT);
             loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BASIC);
 
-            client.addInterceptor(chain -> {
+            clientBuilder.addInterceptor(chain -> {
                         Request original = chain.request();
                         HttpUrl originalHttpUrl = original.url();
                         HttpUrl url = originalHttpUrl.newBuilder()
@@ -55,7 +62,7 @@ public class RetrofitConfig {
             // Create retrofit instance
             Retrofit retrofit = new Retrofit.Builder()
                     .baseUrl(TMDBClient.BASE_URL)
-                    .client(client.build())
+                    .client(clientBuilder.build())
                     // Add Gson converter
                     .addConverterFactory(GsonConverterFactory.create())
 //                .addConverterFactory(ScalarsConverterFactory.create())
@@ -70,18 +77,22 @@ public class RetrofitConfig {
         @Singleton
         public static AppClient sMyClient() {
             // Create OkHttp Client
-            OkHttpClient.Builder client = new OkHttpClient.Builder();
+            OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder();
+            clientBuilder.connectTimeout(3000, TimeUnit.MILLISECONDS);
+            clientBuilder.readTimeout(3000, TimeUnit.MILLISECONDS);
+            clientBuilder.writeTimeout(3000, TimeUnit.MILLISECONDS);
+
             // Add interceptor to add API key as query string parameter to each request
             HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor(HttpLoggingInterceptor.Logger.DEFAULT);
             loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BASIC);
 
-            client
+            clientBuilder
                     .addInterceptor(loggingInterceptor);
 
             // Create retrofit instance
             Retrofit retrofit = new Retrofit.Builder()
                     .baseUrl(BASE_URL)
-                    .client(client.build())
+                    .client(clientBuilder.build())
                     // Add Gson converter
                     .addConverterFactory(GsonConverterFactory.create())
 //                .addConverterFactory(ScalarsConverterFactory.create())

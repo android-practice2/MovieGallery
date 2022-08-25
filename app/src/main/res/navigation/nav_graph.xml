@@ -23,5 +23,10 @@
         android:label="Friends"
         tools:layout="@layout/fragment_friends" />
 
+    <fragment
+        android:id="@+id/myDetailFragment"
+        android:label="Me"
+        android:name="com.bignerdranch.android.moviegallery.MyDetailFragment"
+        tools:layout="@layout/fragment_my_detail" />
 
 </navigation>

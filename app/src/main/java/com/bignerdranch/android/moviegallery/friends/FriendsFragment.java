@@ -2,16 +2,13 @@ package com.bignerdranch.android.moviegallery.friends;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.paging.CombinedLoadStates;
 import androidx.paging.LoadState;
@@ -23,9 +20,8 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.bignerdranch.android.moviegallery.BaseFragment;
 import com.bignerdranch.android.moviegallery.MyLoadStateAdapter;
-import com.bignerdranch.android.moviegallery.PersonDetailActivity;
+import com.bignerdranch.android.moviegallery.NearbyDetailActivity;
 import com.bignerdranch.android.moviegallery.R;
-import com.bignerdranch.android.moviegallery.constants.Constants;
 import com.bignerdranch.android.moviegallery.databinding.FragmentFriendsBinding;
 import com.bignerdranch.android.moviegallery.databinding.ViewHolderFriendsBinding;
 import com.bignerdranch.android.moviegallery.integration.AppClient;
@@ -73,7 +69,7 @@ public class FriendsFragment extends BaseFragment {
         adapter.addLoadStateListener(new Function1<CombinedLoadStates, Unit>() {
             @Override
             public Unit invoke(CombinedLoadStates combinedLoadStates) {
-                if (combinedLoadStates.getRefresh() instanceof LoadState.NotLoading) {
+                if (!(combinedLoadStates.getRefresh() instanceof LoadState.Loading)) {
                     mBinding.swipeRefreshLayout.setRefreshing(false);
                 }
                 return Unit.INSTANCE;
@@ -115,7 +111,7 @@ public class FriendsFragment extends BaseFragment {
                 public void onClick(View v) {
                     TextView uid_text = v.findViewById(R.id.uid);
                     int uid = Integer.parseInt(uid_text.getText().toString());
-                    Intent intent = PersonDetailActivity.newIntent(getActivity(), uid);
+                    Intent intent = NearbyDetailActivity.newIntent(getActivity(), uid);
                     startActivity(intent);
 
                 }

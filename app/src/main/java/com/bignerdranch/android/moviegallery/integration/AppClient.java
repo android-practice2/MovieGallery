@@ -8,6 +8,7 @@ import com.bignerdranch.android.moviegallery.integration.model.RequestTokenRespo
 import com.bignerdranch.android.moviegallery.integration.model.User;
 import com.bignerdranch.android.moviegallery.integration.model.UserGeoLocationAddLocationRequest;
 import com.bignerdranch.android.moviegallery.integration.model.UserGeoLocationSearchNearbyRequest;
+import com.bignerdranch.android.moviegallery.integration.model.UserGetDetailResponse;
 import com.bignerdranch.android.moviegallery.integration.model.UserGetDetailV2Response;
 import com.bignerdranch.android.moviegallery.integration.model.UserLocationProjection;
 import com.bignerdranch.android.moviegallery.integration.model.UserRegisterRequest;
@@ -16,8 +17,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.Map;
-
-import javax.validation.Valid;
 
 import io.reactivex.rxjava3.core.Single;
 import okhttp3.ResponseBody;
@@ -36,11 +35,10 @@ public interface AppClient {
     Call<User> register(@Body UserRegisterRequest request);
 
     @GET("User/getDetail")
-    Call<User> getDetail(@Query("uid") Integer uid);
+    Call<UserGetDetailResponse> getDetail(@Query("uid") Integer uid);
 
     @GET("User/getDetailV2")
-    Call<UserGetDetailV2Response> getDetailV2(@Query("uid") Integer uid,
-                                              @Query("selfUid") Integer selfUid);
+    Call<UserGetDetailV2Response> getDetailV2(@Query("selfUid") Integer selfUid, @Query("uid") Integer uid);
 
     @PUT("UserGeoLocation/addLocation")
     Call<Boolean> addLocation(@Body UserGeoLocationAddLocationRequest request);
@@ -74,4 +72,6 @@ public interface AppClient {
     @GET("Friends/list")
     Single<PageResponseWrapper<User>> doListFriends(@QueryMap Map<String, String> request);
 
+    @GET("Friends/isFriend")
+    Call<Boolean> isFriend(Integer selfUid, Integer uid);
 }

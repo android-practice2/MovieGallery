@@ -27,7 +27,7 @@ public class SocketConnectivityWork extends Worker {
         Log.i(getClass().getSimpleName(), "doWork");
         int uid = workerParams.getInputData().getInt(Constants.EXTRA_UID, -1);
         if (uid > 0) {
-            SocketClient.ensureSocket(mContext, uid);
+            SocketClient.ensureSocket(mContext.getApplicationContext(), uid);
             return Result.success();
         } else {
             Log.e(getClass().getSimpleName(), "uid_is_null before ensureSocket");

@@ -1,7 +1,6 @@
 package com.bignerdranch.android.moviegallery.nearby;
 
 import android.Manifest;
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -9,12 +8,12 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -31,15 +30,12 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.bignerdranch.android.moviegallery.BaseFragment;
-import com.bignerdranch.android.moviegallery.LoginActivity;
 import com.bignerdranch.android.moviegallery.MyLoadStateAdapter;
-import com.bignerdranch.android.moviegallery.PersonDetailActivity;
+import com.bignerdranch.android.moviegallery.NearbyDetailActivity;
 import com.bignerdranch.android.moviegallery.R;
-import com.bignerdranch.android.moviegallery.constants.Constants;
 import com.bignerdranch.android.moviegallery.databinding.FragmentNearbyBinding;
 import com.bignerdranch.android.moviegallery.databinding.ViewHolderNearbyBinding;
 import com.bignerdranch.android.moviegallery.integration.AppClient;
-import com.bignerdranch.android.moviegallery.integration.model.User;
 import com.bignerdranch.android.moviegallery.integration.model.UserGeoLocationAddLocationRequest;
 import com.bignerdranch.android.moviegallery.integration.model.UserLocationProjection;
 import com.bumptech.glide.Glide;
@@ -153,9 +149,14 @@ public class NearbyFragment extends BaseFragment {
         mAdapter.addLoadStateListener(new Function1<CombinedLoadStates, Unit>() {
             @Override
             public Unit invoke(CombinedLoadStates combinedLoadStates) {
-                if (combinedLoadStates.getRefresh() instanceof LoadState.NotLoading) {
+                if (!(combinedLoadStates.getRefresh() instanceof LoadState.Loading)
+                ) {
                     mBinding.swipeRefreshLayout.setRefreshing(false);
                 }
+                if (combinedLoadStates.getRefresh() instanceof LoadState.Error) {
+                    Toast.makeText(getActivity(), "Error", Toast.LENGTH_SHORT).show();
+                }
+
                 return Unit.INSTANCE;
             }
         });
@@ -280,7 +281,7 @@ public class NearbyFragment extends BaseFragment {
                 public void onClick(View v) {
                     TextView uid_text=  v.findViewById(R.id.uid);
                     int uid = Integer.parseInt(uid_text.getText().toString());
-                    Intent intent = PersonDetailActivity.newIntent(getActivity(), uid);
+                    Intent intent = NearbyDetailActivity.newIntent(getActivity(), uid);
                     startActivity(intent);
 
 

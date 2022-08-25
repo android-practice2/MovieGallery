@@ -37,6 +37,7 @@ public class SocketClient {
     private Socket mSocket;
     private RoomCallback mRoomCallback;
     private SignalingCallback mSignalingCallback;
+    private Context applicationContext;
 
     private static final SocketClient SINGLETON = new SocketClient();
 
@@ -83,8 +84,10 @@ public class SocketClient {
         mSocket.emit(EventConstants.MESSAGE, JsonUtil.toJsonObject(message));
     }
 
-    public static void ensureSocket(Context context, Integer uid) {
-        SINGLETON.doEnsureSocket(context, uid);
+    public static void ensureSocket(Context applicationContext, Integer uid) {
+        Log.i(TAG, "ensureSocket,uid:" + uid);
+        SINGLETON.applicationContext = applicationContext;
+        SINGLETON.doEnsureSocket(uid);
     }
 
 
@@ -97,7 +100,7 @@ public class SocketClient {
     }
 
 
-    private void doEnsureSocket(Context context, Integer uid) {
+    private void doEnsureSocket(Integer uid) {
         if (mSocket == null) {
             try {
                 OkHttpClient okHttpClient = new OkHttpClient.Builder()
@@ -136,7 +139,7 @@ public class SocketClient {
             }
 
 
-            setupSocketEventListener(context, uid);
+            setupSocketEventListener(uid);
 
         }
 
@@ -146,38 +149,40 @@ public class SocketClient {
         }
     }
 
-    private void setupSocketEventListener(Context context, Integer uid) {
+    private void setupSocketEventListener(Integer uid) {
         mSocket
                 .on(EventConstants.JOIN, new Emitter.Listener() {
                     @Override
                     public void call(Object... args) {
                         Log.i(TAG, "onJoin" + " " + Arrays.toString(args));
-                        JoinServerPush joinServerPush = (JoinServerPush) args[0];
+                        JoinServerPush joinServerPush = JsonUtil.fromJsonObject((JSONObject) args[0], JoinServerPush.class);
                         Integer peerUid = joinServerPush.getPeerUid();
                         String room = joinServerPush.getRoom();
 
-                        Intent intent = VideoActivity.newIntent(context, peerUid, room, false);
-                        context.startActivity(intent);
+                        Intent intent = VideoActivity.newIntent(applicationContext, peerUid, room, false);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        applicationContext.startActivity(intent);
 
                         JoinRequest joinRequest = new JoinRequest();
                         joinRequest.setRoom(joinServerPush.getRoom());
                         joinRequest.setUid(joinServerPush.getUid());
-                        mSocket.emit(EventConstants.JOIN, joinRequest);
+                        mSocket.emit(EventConstants.JOIN, JsonUtil.toJsonObject(joinRequest));
                     }
                 })
                 .on(EventConstants.CREATED, new Emitter.Listener() {
                     @Override
-                    public void call(Object... args) {
+                    public void call(Object... args) {//caller receive
                         Log.i(TAG, "onCreated" + " " + Arrays.toString(args));
                         mRoomCallback.onCreated(args);
                     }
                 })
                 .on(EventConstants.JOINED, new Emitter.Listener() {
                     @Override
-                    public void call(Object... args) {
+                    public void call(Object... args) {//callee receive
                         Log.i(TAG, "onJoined" + " " + Arrays.toString(args));
-
-                        mRoomCallback.onJoined(args);
+                        if (mRoomCallback != null) {//mRoomCallback may have not been set
+                            mRoomCallback.onJoined(args);
+                        }
 
                     }
                 })
@@ -193,7 +198,10 @@ public class SocketClient {
                     @Override
                     public void call(Object... args) {
                         Log.i(TAG, "onReady" + " " + Arrays.toString(args));
-                        mRoomCallback.onReady(args);
+                        if (mRoomCallback != null) {
+                            mRoomCallback.onReady(args);
+
+                        }
 
                     }
                 }).on(EventConstants.OFFLINE, new Emitter.Listener() {

@@ -11,7 +11,9 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -19,17 +21,14 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.FileProvider;
+import androidx.fragment.app.Fragment;
 
-import com.bignerdranch.android.moviegallery.chat.ChatActivity;
 import com.bignerdranch.android.moviegallery.constants.Constants;
-import com.bignerdranch.android.moviegallery.databinding.ActivityPersonDetailBinding;
+import com.bignerdranch.android.moviegallery.databinding.FragmentUserDetailBinding;
 import com.bignerdranch.android.moviegallery.integration.AppClient;
-import com.bignerdranch.android.moviegallery.integration.model.FriendsAddRequest;
 import com.bignerdranch.android.moviegallery.integration.model.RequestTokenResponse;
-import com.bignerdranch.android.moviegallery.integration.model.UserGetDetailV2Response;
+import com.bignerdranch.android.moviegallery.integration.model.UserGetDetailResponse;
 import com.bignerdranch.android.moviegallery.integration.model.UserUpdateAvatarRequest;
 import com.bignerdranch.android.moviegallery.util.OkHttpUtil;
 import com.bumptech.glide.Glide;
@@ -48,40 +47,46 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 @AndroidEntryPoint
-public class PersonDetailActivity extends BaseActivity {
+public class UserDetailFragment extends Fragment {
     private static final String TAG = "PersonDetailActivity";
-
 
     @Inject
     AppClient mAppClient;
-    private UserGetDetailV2Response mUserDetail;
+    private UserGetDetailResponse mUserDetail;
     private File mFile;
     private Uri mUriForFile;
 
-    private com.bignerdranch.android.moviegallery.databinding.ActivityPersonDetailBinding mBinding;
-    private int mLoginUid;
-    private int mUid;
+    private FragmentUserDetailBinding mBinding;
+    private int mUid = -1;
 
-    public static Intent newIntent(Context context, Integer uid) {
-        Intent intent = new Intent(context, PersonDetailActivity.class);
-        intent.putExtra(Constants.EXTRA_UID, uid);
-        return intent;
+
+    public static Fragment newInstance(int uid) {
+        UserDetailFragment fragment = new UserDetailFragment();
+        Bundle args = new Bundle();
+        args.putInt(Constants.EXTRA_UID, uid);
+        fragment.setArguments(args);
+
+        return fragment;
+    }
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        View inflate = inflater.inflate(R.layout.fragment_user_detail, container, false);
+        mBinding = FragmentUserDetailBinding.bind(inflate);
+
+        mUid = requireArguments().getInt(Constants.EXTRA_UID, -1);
+
+        queryUserDetail();
+
+        setupView();
+
+        return inflate;
+
 
     }
 
-    @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        mBinding = ActivityPersonDetailBinding.inflate(getLayoutInflater());
-        ConstraintLayout root = mBinding.getRoot();
-        setContentView(root);
-
-        mUid = getIntent().getIntExtra(Constants.EXTRA_UID, -1);
-        mLoginUid = PreferenceManager.getDefaultSharedPreferences(this)
-                .getInt(Constants.PF_UID, -1);
-
-        queryUserDetailV2();
-
+    private void setupView() {
         mBinding.replaceAvatarButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -94,9 +99,9 @@ public class PersonDetailActivity extends BaseActivity {
 
                 //# grant uri permission
                 List<ResolveInfo> resolveInfos =
-                        getPackageManager().queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
+                        requireActivity().getPackageManager().queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
                 for (ResolveInfo resolveInfo : resolveInfos) {
-                    grantUriPermission(resolveInfo.activityInfo.packageName, uri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                    requireActivity().grantUriPermission(resolveInfo.activityInfo.packageName, uri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
                 }
 
                 startActivityForResult(intent, Constants.RESULT_REQ_CODE_CAMERA);
@@ -107,18 +112,18 @@ public class PersonDetailActivity extends BaseActivity {
         mBinding.avatarImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Dialog dialog = new Dialog(PersonDetailActivity.this, android.R.style.Theme_NoTitleBar_Fullscreen);
+                Dialog dialog = new Dialog(UserDetailFragment.this.requireActivity(), android.R.style.Theme_NoTitleBar_Fullscreen);
                 dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
                 dialog.setCancelable(false);
                 dialog.setContentView(R.layout.dialog_preview_image);
                 ImageView image_view = dialog.findViewById(R.id.image_view);
                 String avatar = mUserDetail.getAvatar();
                 if (avatar != null) {
-                    Glide.with(getApplicationContext())
+                    Glide.with(requireActivity().getApplicationContext())
                             .load(avatar)
                             .into(image_view);
                 } else {
-                    Glide.with(getApplicationContext())
+                    Glide.with(requireActivity().getApplicationContext())
                             .load(R.drawable.ic_person)
                             .into(image_view);
                 }
@@ -134,66 +139,27 @@ public class PersonDetailActivity extends BaseActivity {
                 dialog.show();
             }
         });
-
-        mBinding.addFriendBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (mLoginUid < 0) {
-                    Toast.makeText(PersonDetailActivity.this, "mSelfUid should not be null", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                FriendsAddRequest request = new FriendsAddRequest();
-                request.setUid(mLoginUid);
-                request.setFriend_uid(mUid);
-
-                Call<Void> call = mAppClient.addFriend(request);
-                call.enqueue(new Callback<Void>() {
-                    @Override
-                    public void onResponse(Call<Void> call, Response<Void> response) {
-                        Log.i(TAG, "add_friend success");
-
-                        mBinding.chatBtn.setVisibility(View.VISIBLE);
-                        mBinding.addFriendBtn.setVisibility(View.GONE);
-                    }
-
-                    @Override
-                    public void onFailure(Call<Void> call, Throwable t) {
-                        Log.e(TAG, "add_friend fail", t);
-                    }
-                });
-
-            }
-        });
-
-        mBinding.chatBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = ChatActivity.newIntent(PersonDetailActivity.this, mUid);
-                startActivity(intent);
-            }
-        });
-
     }
 
-    private void queryUserDetailV2() {
-        Call<UserGetDetailV2Response> call = mAppClient.getDetailV2(mUid, mLoginUid);
-        call.enqueue(new Callback<UserGetDetailV2Response>() {
+    private void queryUserDetail() {
+        Call<UserGetDetailResponse> call = mAppClient.getDetail(mUid);
+        call.enqueue(new Callback<UserGetDetailResponse>() {
             @Override
-            public void onResponse(Call<UserGetDetailV2Response> call, Response<UserGetDetailV2Response> response) {
+            public void onResponse(Call<UserGetDetailResponse> call, Response<UserGetDetailResponse> response) {
                 mUserDetail = response.body();
                 if (mUserDetail == null) {
-                    Toast.makeText(PersonDetailActivity.this, "getDetailFromRemote exception", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(UserDetailFragment.this.requireActivity(), "getDetailFromRemote exception", Toast.LENGTH_SHORT).show();
                     return;
 
                 }
                 Log.i(TAG, "user detail: " + mUserDetail);
 
                 if (mUserDetail.getAvatar() != null) {
-                    Glide.with(getApplicationContext())
+                    Glide.with(requireActivity().getApplicationContext())
                             .load(mUserDetail.getAvatar())
                             .into(mBinding.avatarImage);
                 } else {
-                    Glide.with(getApplicationContext())
+                    Glide.with(requireActivity().getApplicationContext())
                             .load(R.drawable.ic_person)
                             .into(mBinding.avatarImage);
                 }
@@ -201,13 +167,10 @@ public class PersonDetailActivity extends BaseActivity {
                 mBinding.phoneNumberText.setText(mUserDetail.getPhone_number());
                 mBinding.uidText.setText(mUserDetail.getUid().toString());
 
-                boolean addFriendBtnVisible = !mUserDetail.getAreFriend();
-                mBinding.addFriendBtn.setVisibility(addFriendBtnVisible ? View.VISIBLE : View.GONE);
-                mBinding.chatBtn.setVisibility(!addFriendBtnVisible ? View.VISIBLE : View.GONE);
             }
 
             @Override
-            public void onFailure(Call<UserGetDetailV2Response> call, Throwable t) {
+            public void onFailure(Call<UserGetDetailResponse> call, Throwable t) {
                 Log.e(TAG, "getDetailFromRemote fail", t);
             }
         });
@@ -216,17 +179,18 @@ public class PersonDetailActivity extends BaseActivity {
 
     private Uri buildUriForFile() {
         if (mFile == null) {
-            mFile = new File(getFilesDir(), "IMG_" + mUserDetail.getUid() + ".jpg");
+            mFile = new File(requireActivity().getFilesDir(), "IMG_" + mUserDetail.getUid() + ".jpg");
         }
         if (mUriForFile == null) {
-            mUriForFile = FileProvider.getUriForFile(PersonDetailActivity.this,
+            mUriForFile = FileProvider.getUriForFile(UserDetailFragment.this.requireActivity(),
                     "com.bignerdranch.android.moviegallery.fileprovider", mFile);
         }
         return mUriForFile;
     }
 
+
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (resultCode != Activity.RESULT_OK) {
@@ -234,19 +198,19 @@ public class PersonDetailActivity extends BaseActivity {
         }
         if (requestCode == Constants.RESULT_REQ_CODE_CAMERA) {
             Uri uri = buildUriForFile();
-            revokeUriPermission(uri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+            requireActivity().revokeUriPermission(uri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
 
             //show and scale image
 //            Bitmap scaledBitmap = PictureUtils.getScaledBitmap(mFile.getPath(), mAvatar_image.getMeasuredWidth(), mAvatar_image.getMeasuredHeight());
 //            mAvatar_image.setImageBitmap(scaledBitmap);
-            Glide.with(getApplicationContext())
+            Glide.with(requireActivity().getApplicationContext())
                     .load(uri)
                     .into(mBinding.avatarImage);
 
             //compress image
             File compressedFile = null;
             try {
-                compressedFile = new Compressor(this).compressToFile(mFile);
+                compressedFile = new Compressor(requireActivity()).compressToFile(mFile);
             } catch (IOException e) {
                 e.printStackTrace();
                 compressedFile = mFile;

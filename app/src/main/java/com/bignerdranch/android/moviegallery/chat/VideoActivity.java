@@ -5,17 +5,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.content.res.AppCompatResources;
 import androidx.core.app.ActivityCompat;
 
@@ -39,7 +35,6 @@ public class VideoActivity extends BaseActivity {
     private boolean mIsInitiator;
     private ControlState mControlState = new ControlState();
     private SocketClient mSocketClient = SocketClient.getInstance();
-    private int mUid;
 
     public static Intent newIntent(Context context, Integer peerUid, String room
             , boolean isInitiator) {
@@ -59,21 +54,16 @@ public class VideoActivity extends BaseActivity {
 
         SocketClient.setRoomCallback(new SocketRoomCallback());
 
-
-        mUid = PreferenceManager.getDefaultSharedPreferences(this)
-                .getInt(Constants.PF_UID, -1);
-
         mPeerUid = getIntent().getIntExtra(Constants.EXTRA_PEER_UID, -1);
         mRoom = getIntent().getStringExtra(Constants.EXTRA_ROOM);
         mIsInitiator = getIntent().getBooleanExtra(Constants.EXTRA_IS_INITIATOR, false);
 
+        requestPermissionAndSetupWebRTC();
+        setupViewBehavior();
         if (mIsInitiator) {
-            call();
+            roomCall();
         }
 
-        requestPermission();
-
-        setupViewBehavior();
 
     }
 
@@ -85,7 +75,7 @@ public class VideoActivity extends BaseActivity {
 
     }
 
-    private void call() {
+    private void roomCall() {
         CallRequest callRequest = new CallRequest();
         callRequest.setRoom(mRoom);
         callRequest.setUid(mUid);
@@ -207,7 +197,7 @@ public class VideoActivity extends BaseActivity {
 
     }
 
-    private void requestPermission() {
+    private void requestPermissionAndSetupWebRTC() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
                 != PackageManager.PERMISSION_GRANTED
                 || ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
@@ -233,9 +223,8 @@ public class VideoActivity extends BaseActivity {
     }
 
     private void startWebRTC() {
-        if (mIsInitiator) {
-            mWebRTCClient.start();
-        }
+        mWebRTCClient.start();
+
     }
 
     @Override
@@ -245,7 +234,7 @@ public class VideoActivity extends BaseActivity {
                 && grantResults[0] == PackageManager.PERMISSION_GRANTED
                 && grantResults[1] == PackageManager.PERMISSION_GRANTED
         ) {
-            requestPermission();
+            requestPermissionAndSetupWebRTC();
         }
 
     }
@@ -263,7 +252,9 @@ public class VideoActivity extends BaseActivity {
 
         @Override
         public void onReady(Object... args) {
-            startWebRTC();
+            if (mIsInitiator) {
+                startWebRTC();
+            }
         }
 
         @Override

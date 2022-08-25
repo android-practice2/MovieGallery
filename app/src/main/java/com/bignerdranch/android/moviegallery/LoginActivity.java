@@ -27,7 +27,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 @AndroidEntryPoint
-public class LoginActivity extends BaseActivity {
+public class LoginActivity extends AppCompatActivity {
     private static final String TAG = "LoginActivity";
 
     @Inject

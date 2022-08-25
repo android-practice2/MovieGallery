@@ -10,6 +10,7 @@ public class Constants {
     //    ###############  intent  extra entry name
     public static final String EXTRA_USER = "extra_user";
     public static final String EXTRA_UID = "EXTRA_UID";
+    public static final String EXTRA_OTHER_UID = "EXTRA_OTHER_UID";
     public static final String EXTRA_SELF_UID = "EXTRA_SELF_UID";
     public static final String EXTRA_PEER_UID = "EXTRA_PEER_UID";
     public static final String EXTRA_ROOM = "EXTRA_ROOM";

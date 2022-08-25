@@ -19,6 +19,13 @@ public class BaseActivity extends AppCompatActivity {
     protected int mUid = -1;
     protected UserModel mUserModel;
 
+    public BaseActivity() {
+    }
+
+    public BaseActivity(int contentLayoutId) {
+        super(contentLayoutId);
+    }
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

@@ -19,6 +19,7 @@ import androidx.paging.rxjava3.RxPagingSource;
 import com.bignerdranch.android.moviegallery.constants.Constants;
 import com.bignerdranch.android.moviegallery.integration.AppClient;
 import com.bignerdranch.android.moviegallery.integration.model.PageResponseWrapper;
+import com.bignerdranch.android.moviegallery.integration.model.User;
 import com.bignerdranch.android.moviegallery.integration.model.UserGeoLocationSearchNearbyRequest;
 import com.bignerdranch.android.moviegallery.integration.model.UserLocationProjection;
 
@@ -39,12 +40,11 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 @kotlinx.coroutines.ExperimentalCoroutinesApi
 public class NearbyViewModel extends ViewModel {
 
-    private  Flowable<PagingData<UserLocationProjection>> mFlowable;
+    private Flowable<PagingData<UserLocationProjection>> mFlowable;
     private NearbyPagingSource mNearbyPagingSource;
     private AppClient mAppClient;
-    private boolean canPaging;//without location, can not list
 
-    private UserGeoLocationSearchNearbyRequest mRequest;
+    private Location location;
 
     @Inject
     public NearbyViewModel(AppClient appClient) {
@@ -58,7 +58,7 @@ public class NearbyViewModel extends ViewModel {
                 }
                 );
         mFlowable = PagingRx.getFlowable(pager);
-        mFlowable =   PagingRx.cachedIn(mFlowable, ViewModelKt.getViewModelScope(this));
+        mFlowable = PagingRx.cachedIn(mFlowable, ViewModelKt.getViewModelScope(this));
 
     }
 
@@ -71,26 +71,9 @@ public class NearbyViewModel extends ViewModel {
                 });
     }
 
-    public void setRequest(UserGeoLocationSearchNearbyRequest request) {
-        mRequest = request;
-    }
-
-    public UserGeoLocationSearchNearbyRequest getRequest() {
-        return mRequest;
-    }
 
     public void upsertLocation(Location location) {
-        if (mRequest == null) {
-            mRequest = new UserGeoLocationSearchNearbyRequest();
-        }
-        mRequest.setLatitude((float) location.getLatitude());
-        mRequest.setLongitude((float) location.getLongitude());
-
-        canPaging = true;
-        if (mNearbyPagingSource != null) {
-            mNearbyPagingSource.invalidate();
-
-        }
+        this.location = location;
 
     }
 
@@ -105,53 +88,44 @@ public class NearbyViewModel extends ViewModel {
     public class NearbyPagingSource extends RxPagingSource<Integer, UserLocationProjection> {
         public static final String TAG = "NearbyPagingSource";
 
-        @NonNull
-        @Override
-        public Single<LoadResult<Integer, UserLocationProjection>> loadSingle(@NonNull LoadParams<Integer> loadParams) {
-            Log.i(TAG, "mRequest:" + mRequest);
-            if (mRequest == null) {
-                return Single.just(new LoadResult.Error<Integer, UserLocationProjection>(new IllegalStateException()));
-            }
-
-            mRequest.setPageSize(loadParams.getLoadSize());
-            int pageNumber = loadParams.getKey() == null ?
-                    Constants.DEFAULT_PAGE
-                    : loadParams.getKey() + 1;
-
-            mRequest.setPageNumber(
-                    pageNumber
-
-            );
-
-            if (!canPaging) {
-                return Single.just(new LoadResult.Page<>(Collections.emptyList(), null, null));
-            }
-
-            Single<PageResponseWrapper<UserLocationProjection>> single = mAppClient.searchNearby(mRequest);
-            return single
-                    .subscribeOn(Schedulers.io())
-                    .map((Function<? super PageResponseWrapper<UserLocationProjection>, LoadResult<Integer, UserLocationProjection>>) wrapper -> {
-                        Log.i(TAG, "response:" + wrapper);
-                        List<UserLocationProjection> list = wrapper.getList();
-
-                        return new LoadResult.Page<Integer, UserLocationProjection>(
-                                list,
-                                pageNumber <= Constants.DEFAULT_PAGE ? null : pageNumber - 1
-                                , list.isEmpty() ? null : pageNumber + 1
-                        );
-
-                    }).onErrorReturn(throwable -> {
-                        Log.e(TAG, "searchNearby error", throwable);
-                        return new LoadResult.Error<Integer, UserLocationProjection>(throwable);
-                    });
-
-        }
-
         @Nullable
         @Override
         public Integer getRefreshKey(@NonNull PagingState<Integer, UserLocationProjection> pagingState) {
             return null;
         }
 
+        @NonNull
+        @Override
+        public Single<LoadResult<Integer, UserLocationProjection>> loadSingle(@NonNull LoadParams<Integer> loadParams) {
+            Log.w(TAG, "loadSingle,location:" + location);
+            if (location == null) {
+                return Single.just(new LoadResult.Page<>(Collections.emptyList(), null, null));
+            }
+
+            UserGeoLocationSearchNearbyRequest request = new UserGeoLocationSearchNearbyRequest();
+            request.setLatitude((float) location.getLatitude());
+            request.setLongitude((float) location.getLongitude());
+
+            int newKey = loadParams.getKey() == null ? Constants.DEFAULT_PAGE : loadParams.getKey() + 1;
+
+            request.setPageNumber(newKey);
+            request.setPageSize(loadParams.getLoadSize());
+
+            Single<PageResponseWrapper<UserLocationProjection>> single = mAppClient.searchNearby(request);
+
+            return single.subscribeOn(Schedulers.io())
+                    .map((Function<PageResponseWrapper<UserLocationProjection>, LoadResult<Integer, UserLocationProjection>>) wrapper -> {
+                        return new LoadResult.Page<Integer, UserLocationProjection>(wrapper.getList()
+                                , newKey - 1 < 1 ? null : newKey - 1,
+                                wrapper.getList().isEmpty() ? null : newKey + 1
+                        );
+                    })
+                    .onErrorReturn(e -> {
+                        Log.e(TAG, "searchNearby error", e);
+                        return new LoadResult.Error<Integer, UserLocationProjection>(e);
+                    });
+
+
+        }
     }
 }
