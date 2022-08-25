@@ -24,6 +24,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.bignerdranch.android.moviegallery.BaseFragment;
 import com.bignerdranch.android.moviegallery.MyLoadStateAdapter;
 import com.bignerdranch.android.moviegallery.R;
 import com.bignerdranch.android.moviegallery.databinding.FragmentMoviesBinding;
@@ -39,14 +40,14 @@ import kotlin.jvm.functions.Function1;
 
 /**
  * do not remove me , here is a good example for paging 3
- *
+ * <p>
  * A simple {@link Fragment} subclass.
  * create an instance of this fragment.
  */
 @AndroidEntryPoint
 @kotlinx.coroutines.ExperimentalCoroutinesApi
-public class MoviesFragment extends Fragment {
-    private static final String TAG="MoviesFragment";
+public class MoviesFragment extends BaseFragment {
+    private static final String TAG = "MoviesFragment";
     public static final String PREFER_QUERY = "prefer_query";
 
     private MovieViewModel mMovieViewModel;

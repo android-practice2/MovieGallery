@@ -19,6 +19,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.content.res.AppCompatResources;
 import androidx.core.app.ActivityCompat;
 
+import com.bignerdranch.android.moviegallery.BaseActivity;
 import com.bignerdranch.android.moviegallery.R;
 import com.bignerdranch.android.moviegallery.constants.Constants;
 import com.bignerdranch.android.moviegallery.databinding.ActivityVideoBinding;
@@ -28,7 +29,7 @@ import com.bignerdranch.android.moviegallery.webrtc.signaling_client.SocketClien
 import com.bignerdranch.android.moviegallery.webrtc.signaling_client.model.ByeRequest;
 import com.bignerdranch.android.moviegallery.webrtc.signaling_client.model.CallRequest;
 
-public class VideoActivity extends AppCompatActivity {
+public class VideoActivity extends BaseActivity {
 
     private int mPeerUid;
 

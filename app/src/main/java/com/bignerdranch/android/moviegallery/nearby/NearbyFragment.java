@@ -30,6 +30,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.bignerdranch.android.moviegallery.BaseFragment;
 import com.bignerdranch.android.moviegallery.LoginActivity;
 import com.bignerdranch.android.moviegallery.MyLoadStateAdapter;
 import com.bignerdranch.android.moviegallery.PersonDetailActivity;
@@ -60,7 +61,7 @@ import retrofit2.Response;
  */
 @AndroidEntryPoint
 @kotlinx.coroutines.ExperimentalCoroutinesApi
-public class NearbyFragment extends Fragment {
+public class NearbyFragment extends BaseFragment {
     private static final String TAG = "NearbyFragment";
     public static final int MIN_TIME_MS = 5 * 60 * 1000;
     public static final int MIN_DISTANCE_M = 50;

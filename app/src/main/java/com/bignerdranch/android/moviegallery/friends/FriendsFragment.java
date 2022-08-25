@@ -21,6 +21,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.bignerdranch.android.moviegallery.BaseFragment;
 import com.bignerdranch.android.moviegallery.MyLoadStateAdapter;
 import com.bignerdranch.android.moviegallery.PersonDetailActivity;
 import com.bignerdranch.android.moviegallery.R;
@@ -39,7 +40,7 @@ import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
 
 @AndroidEntryPoint
-public class FriendsFragment extends Fragment {
+public class FriendsFragment extends BaseFragment {
     @Inject
     AppClient mAppClient;
 

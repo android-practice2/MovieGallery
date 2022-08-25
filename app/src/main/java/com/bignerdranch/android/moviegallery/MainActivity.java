@@ -29,7 +29,7 @@ import com.google.android.material.navigation.NavigationView;
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
-public class MainActivity extends AppCompatActivity
+public class MainActivity extends BaseActivity
 //        implements NavigationView.OnNavigationItemSelectedListener
 {
     public static final int REQ_CODE_PERMISSION = 1;

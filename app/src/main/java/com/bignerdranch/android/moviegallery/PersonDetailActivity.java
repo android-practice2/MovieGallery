@@ -48,7 +48,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 @AndroidEntryPoint
-public class PersonDetailActivity extends AppCompatActivity {
+public class PersonDetailActivity extends BaseActivity {
     private static final String TAG = "PersonDetailActivity";
 
 

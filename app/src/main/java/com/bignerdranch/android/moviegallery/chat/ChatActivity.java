@@ -9,13 +9,14 @@ import android.widget.RelativeLayout;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.bignerdranch.android.moviegallery.BaseActivity;
 import com.bignerdranch.android.moviegallery.constants.Constants;
 import com.bignerdranch.android.moviegallery.databinding.ActivityChatBinding;
 import com.bignerdranch.android.moviegallery.webrtc.signaling_client.SocketClient;
 
 import java.util.UUID;
 
-public class ChatActivity extends AppCompatActivity {
+public class ChatActivity extends BaseActivity {
     private int mPeerUid;
 
     private com.bignerdranch.android.moviegallery.databinding.ActivityChatBinding mBinding;
