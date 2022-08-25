@@ -72,14 +72,11 @@ public class NearbyFragment extends BaseFragment {
     public static final int REQ_CODE_PERMISSION = 1;
     @Inject
     AppClient mAppClient;
-    private int mUid = -1;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.i(TAG, "onCreate");
-        mUid = PreferenceManager.getDefaultSharedPreferences(getActivity())
-                .getInt(Constants.PF_UID, -1);
 
     }
 
@@ -97,38 +94,14 @@ public class NearbyFragment extends BaseFragment {
                 mAdapter.refresh();
             }
         });
-        //login
-        if (mUid < 0) {
-            Intent intent = LoginActivity.newIntent(getActivity());
-            startActivityForResult(intent, REQUEST_CODE_LOGIN);
-        } else {
-            acquireLocation();
 
-            bindPaging();
-        }
+        acquireLocation();
+        bindPaging();
+
 
         return inflate;
     }
 
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        Log.i(TAG, "onActivityResult");
-        if (resultCode == Activity.RESULT_OK && requestCode == REQUEST_CODE_LOGIN) {
-            mUid = data.getIntExtra(Constants.EXTRA_UID, -1);
-            PreferenceManager.getDefaultSharedPreferences(getActivity())
-                    .edit()
-                    .putInt(Constants.PF_UID, mUid)
-                    .apply();
-            acquireLocation();
-            bindPaging();
-
-            return;
-        }
-        super.onActivityResult(requestCode, resultCode, data);
-
-
-    }
 
 
     @Override

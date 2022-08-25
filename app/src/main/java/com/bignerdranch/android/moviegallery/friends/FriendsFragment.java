@@ -56,19 +56,12 @@ public class FriendsFragment extends BaseFragment {
 
         mFriendsViewModel = new ViewModelProvider(this).get(FriendsViewModel.class);
 
-        int uid = PreferenceManager.getDefaultSharedPreferences(getActivity())
-                .getInt(Constants.PF_UID, -1);
-        if (uid < 0) {
-            Toast.makeText(getActivity(), "require login", Toast.LENGTH_SHORT).show();
-            return inflate;
-        }
-
         mBinding.recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         FriendsAdapter adapter = new FriendsAdapter(new UserDiff());
         mBinding.recyclerView.setAdapter(
                 adapter.withLoadStateFooter(new MyLoadStateAdapter(v -> adapter.retry()))
         );
-        mFriendsViewModel.subscribe(getLifecycle(), adapter, uid);
+        mFriendsViewModel.subscribe(getLifecycle(), adapter, mUid);
 
         mBinding.swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
