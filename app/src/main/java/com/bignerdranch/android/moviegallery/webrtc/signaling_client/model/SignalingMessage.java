@@ -4,7 +4,7 @@ package com.bignerdranch.android.moviegallery.webrtc.signaling_client.model;
 public class SignalingMessage {
     private String type;
     private String room;
-    private Object content;//json, transparent
+    private Object content;//json, transparent.  gson deser as com.google.gson.internal.LinkedTreeMap
 
     public String getType() {
         return type;

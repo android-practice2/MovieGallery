@@ -31,8 +31,7 @@ public class BaseActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         mUserModel = new ViewModelProvider(this).get(UserModel.class);
 
-        mUid = PreferenceManager.getDefaultSharedPreferences(getApplicationContext())
-                .getInt(Constants.PF_UID, -1);
+        setupUid();
         if (mUid < 0) {
             Intent intent = LoginActivity.newIntent(this);
             startActivityForResult(intent, REQUEST_CODE_LOGIN);
@@ -44,26 +43,27 @@ public class BaseActivity extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
         Log.i(TAG, "onActivityResult");
         if (resultCode == Activity.RESULT_OK && requestCode == REQUEST_CODE_LOGIN) {
-            mUid = data.getIntExtra(Constants.EXTRA_UID, -1);
-            PreferenceManager.getDefaultSharedPreferences(getApplicationContext())
-                    .edit()
-                    .putInt(Constants.PF_UID, mUid)
-                    .apply();
-
+            setupUid();
             afterLogin();
-
-            return;
         }
-        super.onActivityResult(requestCode, resultCode, data);
+    }
 
+    private void setupUid() {
+        mUid = PreferenceManager.getDefaultSharedPreferences(getApplicationContext())
+                .getInt(Constants.PF_UID, -1);
+        mUserModel.setUid(mUid);
     }
 
     private void afterLogin() {
-        SocketClient.ensureSocket(getApplicationContext(), mUid);
+        if (mUid > 0) {
+            SocketClient.ensureSocket(getApplicationContext(), mUid);
+        } else {
+            Log.e(TAG, "uid_error,uid:" + mUid);
+        }
 
-        mUserModel.setUid(mUid);
     }
 
 }

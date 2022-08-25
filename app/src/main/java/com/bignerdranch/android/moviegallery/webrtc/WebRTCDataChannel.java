@@ -12,11 +12,11 @@ import java.nio.ByteBuffer;
 public class WebRTCDataChannel {
 
     private final PeerConnection mPeerConnection;
-    private final MessagingCallback mMessagingCallback;
+    private final Callback mMessagingCallback;
 
     private DataChannel mDataChannel;
 
-    public WebRTCDataChannel(PeerConnection peerConnection, MessagingCallback messagingCallback) {
+    public WebRTCDataChannel(PeerConnection peerConnection, Callback messagingCallback) {
         mPeerConnection = peerConnection;
         mMessagingCallback = messagingCallback;
     }
@@ -73,7 +73,7 @@ public class WebRTCDataChannel {
         }
     }
 
-    public interface MessagingCallback {
+    public interface Callback {
         void onMessage(String message);
     }
 }

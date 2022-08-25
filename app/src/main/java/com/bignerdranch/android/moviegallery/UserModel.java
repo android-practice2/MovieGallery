@@ -15,4 +15,12 @@ public class UserModel extends ViewModel {
     public int getUid() {
         return mUid;
     }
+
+
+    @Override
+    public String toString() {
+        return "UserModel{" +
+                "mUid=" + mUid +
+                '}';
+    }
 }

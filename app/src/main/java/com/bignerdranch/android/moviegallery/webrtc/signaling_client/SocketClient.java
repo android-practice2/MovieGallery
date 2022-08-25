@@ -1,5 +1,6 @@
 package com.bignerdranch.android.moviegallery.webrtc.signaling_client;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
@@ -8,6 +9,7 @@ import androidx.annotation.NonNull;
 
 import com.bignerdranch.android.moviegallery.chat.VideoActivity;
 import com.bignerdranch.android.moviegallery.util.JsonUtil;
+import com.bignerdranch.android.moviegallery.webrtc.WebRTCClient;
 import com.bignerdranch.android.moviegallery.webrtc.signaling_client.constants.EventConstants;
 import com.bignerdranch.android.moviegallery.webrtc.signaling_client.model.ByeRequest;
 import com.bignerdranch.android.moviegallery.webrtc.signaling_client.model.CallRequest;
@@ -19,8 +21,10 @@ import org.json.JSONObject;
 
 import java.net.URISyntaxException;
 import java.util.Arrays;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import io.socket.client.Ack;
 import io.socket.client.IO;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
@@ -38,6 +42,7 @@ public class SocketClient {
     private RoomCallback mRoomCallback;
     private SignalingCallback mSignalingCallback;
     private Context applicationContext;
+    private CountDownLatch mCountDownLatch;
 
     private static final SocketClient SINGLETON = new SocketClient();
 
@@ -149,6 +154,10 @@ public class SocketClient {
         }
     }
 
+    public CountDownLatch getCountDownLatch() {
+        return mCountDownLatch;
+    }
+
     private void setupSocketEventListener(Integer uid) {
         mSocket
                 .on(EventConstants.JOIN, new Emitter.Listener() {
@@ -158,10 +167,18 @@ public class SocketClient {
                         JoinServerPush joinServerPush = JsonUtil.fromJsonObject((JSONObject) args[0], JoinServerPush.class);
                         Integer peerUid = joinServerPush.getPeerUid();
                         String room = joinServerPush.getRoom();
+                        new WebRTCClient(applicationContext, room);
 
                         Intent intent = VideoActivity.newIntent(applicationContext, peerUid, room, false);
                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         applicationContext.startActivity(intent);
+
+                        mCountDownLatch = new CountDownLatch(1);
+                        try {
+                            mCountDownLatch.await();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
 
                         JoinRequest joinRequest = new JoinRequest();
                         joinRequest.setRoom(joinServerPush.getRoom());
@@ -180,9 +197,10 @@ public class SocketClient {
                     @Override
                     public void call(Object... args) {//callee receive
                         Log.i(TAG, "onJoined" + " " + Arrays.toString(args));
-                        if (mRoomCallback != null) {//mRoomCallback may have not been set
-                            mRoomCallback.onJoined(args);
-                        }
+//                        if (mRoomCallback != null) {//mRoomCallback may have not been set
+//                            mRoomCallback.onJoined(args);
+//                        }
+                        mRoomCallback.onJoined(args);
 
                     }
                 })
@@ -198,10 +216,11 @@ public class SocketClient {
                     @Override
                     public void call(Object... args) {
                         Log.i(TAG, "onReady" + " " + Arrays.toString(args));
-                        if (mRoomCallback != null) {
-                            mRoomCallback.onReady(args);
-
-                        }
+//                        if (mRoomCallback != null) {
+//                            mRoomCallback.onReady(args);
+//
+//                        }
+                        mRoomCallback.onReady(args);
 
                     }
                 }).on(EventConstants.OFFLINE, new Emitter.Listener() {
@@ -252,6 +271,20 @@ public class SocketClient {
                     public void call(Object... args) {
                         Log.i(TAG, "onDisconnect" + " " + Arrays.toString(args));
 //                        mSocket.connect();  //already configed auto reconnect
+                    }
+                })
+                .on(Socket.EVENT_PING, new Emitter.Listener() {
+                    @Override
+                    public void call(Object... args) {
+                        Log.i(TAG, "onPing" + " " + Arrays.toString(args));
+
+                    }
+                })
+                .on(Socket.EVENT_PONG, new Emitter.Listener() {
+                    @Override
+                    public void call(Object... args) {
+                        Log.i(TAG, "onPong" + " " + Arrays.toString(args));
+
                     }
                 })
 

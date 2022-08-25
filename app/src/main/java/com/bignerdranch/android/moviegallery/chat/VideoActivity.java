@@ -3,17 +3,16 @@ package com.bignerdranch.android.moviegallery.chat;
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.content.res.AppCompatResources;
-import androidx.core.app.ActivityCompat;
 
 import com.bignerdranch.android.moviegallery.BaseActivity;
 import com.bignerdranch.android.moviegallery.R;
@@ -24,6 +23,9 @@ import com.bignerdranch.android.moviegallery.webrtc.WebRTCDataChannel;
 import com.bignerdranch.android.moviegallery.webrtc.signaling_client.SocketClient;
 import com.bignerdranch.android.moviegallery.webrtc.signaling_client.model.ByeRequest;
 import com.bignerdranch.android.moviegallery.webrtc.signaling_client.model.CallRequest;
+
+import pub.devrel.easypermissions.AfterPermissionGranted;
+import pub.devrel.easypermissions.EasyPermissions;
 
 public class VideoActivity extends BaseActivity {
 
@@ -53,12 +55,15 @@ public class VideoActivity extends BaseActivity {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         SocketClient.setRoomCallback(new SocketRoomCallback());
+        if (mSocketClient.getCountDownLatch() != null) {//callee
+            mSocketClient.getCountDownLatch().countDown();
+        }
 
         mPeerUid = getIntent().getIntExtra(Constants.EXTRA_PEER_UID, -1);
         mRoom = getIntent().getStringExtra(Constants.EXTRA_ROOM);
         mIsInitiator = getIntent().getBooleanExtra(Constants.EXTRA_IS_INITIATOR, false);
 
-        requestPermissionAndSetupWebRTC();
+        setupWebRTC();
         setupViewBehavior();
         if (mIsInitiator) {
             roomCall();
@@ -197,68 +202,118 @@ public class VideoActivity extends BaseActivity {
 
     }
 
-    private void requestPermissionAndSetupWebRTC() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
-                != PackageManager.PERMISSION_GRANTED
-                || ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
-                != PackageManager.PERMISSION_GRANTED
-        ) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA,
-                            Manifest.permission.RECORD_AUDIO},
-                    Constants.PERM_REQ_CODE_CAMERA_AUDIO);
-
-        } else {
+    @AfterPermissionGranted(Constants.PERM_REQ_CODE_CAMERA_AUDIO)
+    private void setupWebRTC() {
+        String[] perms = {Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO};
+        if (EasyPermissions.hasPermissions(this, perms)) {
             instantiateWebRTC();
-
+        } else {
+            EasyPermissions.requestPermissions(this, "", Constants.PERM_REQ_CODE_CAMERA_AUDIO, perms);
         }
     }
+
+//    private void setupWebRTC() {
+//        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+//                != PackageManager.PERMISSION_GRANTED
+//                || ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+//                != PackageManager.PERMISSION_GRANTED
+//        ) {
+//            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA,
+//                            Manifest.permission.RECORD_AUDIO},
+//                    Constants.PERM_REQ_CODE_CAMERA_AUDIO);
+//
+//        } else {
+//            instantiateWebRTC();
+//
+//        }
+//    }
 
     private void instantiateWebRTC() {
-        mWebRTCClient = new WebRTCClient(getApplication(),
-                mBinding.localSurface,
-                mBinding.remoteSurface,
-                mRoom,
-                new WebRTCMessagingCallback()
-        );
-    }
+        if (mIsInitiator) {
+            mWebRTCClient = new WebRTCClient(getApplication(),
+                    mRoom,
+                    mBinding.localSurface,
+                    mBinding.remoteSurface,
+                    new WebRTCDataChannelCallback()
+            );
+        } else {//callee, webRTCClient have been instantiated
+            mWebRTCClient = WebRTCClient.getInstance();
+            mWebRTCClient.bindView(mBinding.localSurface,
+                    mBinding.remoteSurface,
+                    new WebRTCDataChannelCallback());
 
-    private void startWebRTC() {
-        mWebRTCClient.start();
-
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == Constants.PERM_REQ_CODE_CAMERA_AUDIO
-                && grantResults[0] == PackageManager.PERMISSION_GRANTED
-                && grantResults[1] == PackageManager.PERMISSION_GRANTED
-        ) {
-            requestPermissionAndSetupWebRTC();
         }
 
+    }
+
+
+//    @Override
+//    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+//        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+//        if (requestCode == Constants.PERM_REQ_CODE_CAMERA_AUDIO
+//                && grantResults[0] == PackageManager.PERMISSION_GRANTED
+//                && grantResults[1] == PackageManager.PERMISSION_GRANTED
+//        ) {
+//            setupWebRTC();
+//        }
+//
+//    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        // Forward results to EasyPermissions
+        EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this);
     }
 
     public class SocketRoomCallback implements SocketClient.RoomCallback {
 
         @Override
         public void onCreated(Object... args) {//delegator have done logging
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(VideoActivity.this, "onCreated", Toast.LENGTH_SHORT).show();
+
+                }
+            });
         }
 
         @Override
         public void onJoined(Object... args) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(VideoActivity.this, "onJoined", Toast.LENGTH_SHORT).show();
+                }
+            });
 
         }
 
         @Override
         public void onReady(Object... args) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(VideoActivity.this, "onReady", Toast.LENGTH_SHORT).show();
+
+                }
+            });
             if (mIsInitiator) {
-                startWebRTC();
+                mWebRTCClient.start();
             }
         }
 
         @Override
         public void onBusy(Object... args) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(VideoActivity.this, "onBusy", Toast.LENGTH_SHORT).show();
+
+                }
+            });
             if (mWebRTCClient != null) {
                 mWebRTCClient.endCall();
             }
@@ -266,6 +321,13 @@ public class VideoActivity extends BaseActivity {
 
         @Override
         public void onOffline(Object... args) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(VideoActivity.this, "onOffline", Toast.LENGTH_SHORT).show();
+
+                }
+            });
             if (mWebRTCClient != null) {
                 mWebRTCClient.endCall();
 
@@ -276,6 +338,13 @@ public class VideoActivity extends BaseActivity {
 
         @Override
         public void onPeer_leaved(Object... args) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(VideoActivity.this, "onPeer_leaved", Toast.LENGTH_SHORT).show();
+
+                }
+            });
             if (mWebRTCClient != null) {
                 mWebRTCClient.endCall();
 
@@ -284,13 +353,21 @@ public class VideoActivity extends BaseActivity {
 
         @Override
         public void onBye(Object... args) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(VideoActivity.this, "onBye", Toast.LENGTH_SHORT).show();
+                }
+            });
             if (mWebRTCClient != null) {
                 mWebRTCClient.endCall();
+            } else {
+                Log.e(TAG, "mWebRTCClient_is_null");
             }
         }
     }
 
-    public class WebRTCMessagingCallback implements WebRTCDataChannel.MessagingCallback {
+    public class WebRTCDataChannelCallback implements WebRTCDataChannel.Callback {
         @Override
         public void onMessage(String message) {
             mBinding.messageReceived.setVisibility(View.VISIBLE);

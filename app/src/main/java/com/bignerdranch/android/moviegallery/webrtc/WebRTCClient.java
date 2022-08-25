@@ -1,6 +1,7 @@
 package com.bignerdranch.android.moviegallery.webrtc;
 
 import android.app.Application;
+import android.content.Context;
 import android.util.Log;
 
 import com.bignerdranch.android.moviegallery.util.JsonUtil;
@@ -9,6 +10,8 @@ import com.bignerdranch.android.moviegallery.webrtc.model.SessionDescriptionDTO;
 import com.bignerdranch.android.moviegallery.webrtc.signaling_client.SocketClient;
 import com.bignerdranch.android.moviegallery.webrtc.signaling_client.constants.SinglingConstants;
 import com.bignerdranch.android.moviegallery.webrtc.signaling_client.model.SignalingMessage;
+import com.google.gson.Gson;
+import com.google.gson.internal.LinkedTreeMap;
 
 import org.json.JSONObject;
 import org.webrtc.AudioSource;
@@ -42,8 +45,7 @@ public class WebRTCClient {
     public static final int FPS = 60;
     //    public static final String STUN_SERVER_URL = "stun:stun.l.google.com:19302";
     public static final String STUN_SERVER_URL = "stun:socialme.hopto.org:3478"; //not ssl
-    private final Application mApplicationContext;
-    private SocketClient mSocketClient = SocketClient.getInstance();
+    private final SocketClient mSocketClient = SocketClient.getInstance();
     // webrtc component
     private EglBase mEglBase;
     private PeerConnectionFactory mPeerConnectionFactory;
@@ -67,18 +69,80 @@ public class WebRTCClient {
     // dataChannel
     private WebRTCDataChannel mWebRTCDataChannel;
 
+    private Context applicationContext;
+
+    private static WebRTCClient instance;
+
+    public static WebRTCClient getInstance() {
+        return instance;
+    }
+
+    public WebRTCClient(Context applicationContext, String room) {
+        this.applicationContext = applicationContext;
+        this.room = room;
+        setupConnection(applicationContext);
+        //setup signaling listener
+        SocketClient.setSignalingCallback(new SocketSignalingCallback());
+
+        instance = this;
+
+// create media component: mCameraVideoCapturer
+        setupCameraCapturer(applicationContext);
+
+    }
 
     public WebRTCClient(Application applicationContext,
-                        SurfaceViewRenderer localSurfaceViewRenderer,
+                        String room, SurfaceViewRenderer localSurfaceViewRenderer,
                         SurfaceViewRenderer remoteSurfaceViewRenderer,
-                        String room,
-                        WebRTCDataChannel.MessagingCallback messagingCallback
+                        WebRTCDataChannel.Callback messagingCallback
     ) {
-        this.mApplicationContext = applicationContext;
+        this(applicationContext, room);
+
+
+        bindView(localSurfaceViewRenderer, remoteSurfaceViewRenderer, messagingCallback);
+
+
+    }
+
+    public void bindView(SurfaceViewRenderer localSurfaceViewRenderer, SurfaceViewRenderer remoteSurfaceViewRenderer
+            , WebRTCDataChannel.Callback messagingCallback) {
+        // init SurfaceViewRenderer
+        setupSurface(localSurfaceViewRenderer, remoteSurfaceViewRenderer);
+
+        startStreamingLocal();
+
+        setupDataChannel(messagingCallback);
+    }
+
+    private void setupDataChannel(WebRTCDataChannel.Callback messagingCallback) {
+        if (FEATURE_DATA_CHANNEL_ENABLE) {
+            mWebRTCDataChannel = new WebRTCDataChannel(mPeerConnection, messagingCallback);
+        }
+    }
+
+    private void setupSurface(SurfaceViewRenderer localSurfaceViewRenderer, SurfaceViewRenderer remoteSurfaceViewRenderer) {
         this.localSurfaceViewRenderer = localSurfaceViewRenderer;
         this.remoteSurfaceViewRenderer = remoteSurfaceViewRenderer;
-        this.room = room;
+        initSurfaceViewRenderer(localSurfaceViewRenderer);
+        initSurfaceViewRenderer(remoteSurfaceViewRenderer);
+    }
 
+    private void setupCameraCapturer(Context applicationContext) {
+        Camera2Enumerator camera2Enumerator = new Camera2Enumerator(applicationContext);
+        for (String deviceName : camera2Enumerator.getDeviceNames()) {
+            boolean frontFacing = camera2Enumerator.isFrontFacing(deviceName);
+            if (frontFacing) {
+                Log.i(getClass().getSimpleName(), "camera_deviceName:" + deviceName);
+                mCameraVideoCapturer = camera2Enumerator.createCapturer(deviceName, null);
+                break;
+            }
+        }
+        if (mCameraVideoCapturer == null) {
+            throw new IllegalStateException();
+        }
+    }
+
+    private void setupConnection(Context applicationContext) {
         mEglBase = EglBase.create();
 
 //        create PeerConnectionFactory
@@ -103,37 +167,6 @@ public class WebRTCClient {
                 iceServers,
                 new PeerConnectionObserver()
         );
-
-// create media component: mCameraVideoCapturer
-        Camera2Enumerator camera2Enumerator = new Camera2Enumerator(applicationContext);
-        for (String deviceName : camera2Enumerator.getDeviceNames()) {
-            boolean frontFacing = camera2Enumerator.isFrontFacing(deviceName);
-            if (frontFacing) {
-                Log.i(getClass().getSimpleName(), "camera_deviceName:" + deviceName);
-                mCameraVideoCapturer = camera2Enumerator.createCapturer(deviceName, null);
-                break;
-            }
-        }
-        if (mCameraVideoCapturer == null) {
-            throw new IllegalStateException();
-        }
-
-
-// init SurfaceViewRenderer
-        initSurfaceViewRenderer(localSurfaceViewRenderer);
-        initSurfaceViewRenderer(remoteSurfaceViewRenderer);
-
-        //setup signaling listener
-        SocketClient.setSignalingCallback(new SocketSignalingCallback());
-
-
-        startStreamingLocal();
-
-        if (FEATURE_DATA_CHANNEL_ENABLE) {
-            mWebRTCDataChannel = new WebRTCDataChannel(mPeerConnection, messagingCallback);
-        }
-
-
     }
 
 
@@ -209,8 +242,10 @@ public class WebRTCClient {
 
     public void endCall() {
         if (mPeerConnection == null) {
+            Log.e(getClass().getSimpleName(), "mPeerConnection_is_null");
             return;
         }
+        Log.i(getClass().getSimpleName(), "endCall");
         localSurfaceViewRenderer.release();
         remoteSurfaceViewRenderer.release();
         mVideoTrack.dispose();
@@ -246,17 +281,14 @@ public class WebRTCClient {
             String type = message.getType();
             switch (type) {
                 case SinglingConstants.ICE_CANDIDATE: {
-                    JSONObject jsonObject = (JSONObject) message.getContent();
-
-                    IceCandidateDTO dto = JsonUtil.fromJsonObject(jsonObject, IceCandidateDTO.class);
+                    IceCandidateDTO dto = JsonUtil.fromObj(message.getContent(), IceCandidateDTO.class);
                     IceCandidate iceCandidate = new IceCandidate(dto.sdpMid, dto.sdpMLineIndex, dto.sdp);
 
                     mPeerConnection.addIceCandidate(iceCandidate);
                     break;
                 }
                 case SinglingConstants.OFFER: {
-                    JSONObject jsonObject = (JSONObject) message.getContent();
-                    SessionDescriptionDTO dto = JsonUtil.fromJsonObject(jsonObject, SessionDescriptionDTO.class);
+                    SessionDescriptionDTO dto = JsonUtil.fromObj(message.getContent(), SessionDescriptionDTO.class);
                     SessionDescription sessionDescription = new SessionDescription(dto.type, dto.description);
 
                     mPeerConnection.setRemoteDescription(new BaseSdpObserver(), sessionDescription);
@@ -279,8 +311,7 @@ public class WebRTCClient {
                     break;
                 }
                 case SinglingConstants.ANSWER: {
-                    JSONObject jsonObject = (JSONObject) message.getContent();
-                    SessionDescriptionDTO dto = JsonUtil.fromJsonObject(jsonObject, SessionDescriptionDTO.class);
+                    SessionDescriptionDTO dto = JsonUtil.fromObj(message.getContent(), SessionDescriptionDTO.class);
                     SessionDescription sessionDescription = new SessionDescription(dto.type, dto.description);
                     mPeerConnection.setRemoteDescription(new BaseSdpObserver(), sessionDescription);
                     break;

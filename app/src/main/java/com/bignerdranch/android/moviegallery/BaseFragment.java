@@ -1,6 +1,7 @@
 package com.bignerdranch.android.moviegallery;
 
 import android.os.Bundle;
+import android.util.Log;
 
 import androidx.annotation.LayoutRes;
 import androidx.annotation.Nullable;
@@ -10,6 +11,7 @@ import androidx.lifecycle.ViewModelProvider;
 import com.bignerdranch.android.moviegallery.webrtc.signaling_client.SocketClient;
 
 public class BaseFragment extends Fragment {
+    public static final String TAG = "BaseFragment";
     protected int mUid = -1;
     protected UserModel mUserModel;
 
@@ -25,8 +27,16 @@ public class BaseFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
         mUserModel = new ViewModelProvider(requireActivity()).get(UserModel.class);
+        Log.i(TAG, "mUserModel:" + mUserModel);
+
         mUid = mUserModel.getUid();
-        SocketClient.ensureSocket(requireActivity().getApplicationContext(), mUid);
+        if (mUid > 0) {
+            SocketClient.ensureSocket(requireActivity().getApplicationContext(), mUid);
+
+        } else {
+            Log.e(TAG, "uid_error,uid:" + mUid + ",mUserModel:" + mUserModel);
+
+        }
 
     }
 }

@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -59,10 +60,13 @@ public class LoginActivity extends AppCompatActivity {
                     public void onResponse(Call<User> call, Response<User> response) {
                         Toast.makeText(LoginActivity.this, "register user success", Toast.LENGTH_SHORT).show();
                         User user = response.body();
-                        Intent data = new Intent();
-                        data.putExtra(Constants.EXTRA_UID, user.getUid());
 
-                        setResult(Activity.RESULT_OK, data);
+                        PreferenceManager.getDefaultSharedPreferences(getApplicationContext())
+                                .edit()
+                                .putInt(Constants.PF_UID, user.getUid())
+                                .apply();
+
+                        setResult(Activity.RESULT_OK);
 
                         SocketWorkManager.getInstance().startSocketConnectivityWork(getApplicationContext());
 
