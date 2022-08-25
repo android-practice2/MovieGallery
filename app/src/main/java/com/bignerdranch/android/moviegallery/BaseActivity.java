@@ -8,6 +8,7 @@ import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.bignerdranch.android.moviegallery.constants.Constants;
 import com.bignerdranch.android.moviegallery.webrtc.signaling_client.SocketClient;
@@ -16,17 +17,20 @@ public class BaseActivity extends AppCompatActivity {
     public static final String TAG = "BaseActivity";
     public static final int REQUEST_CODE_LOGIN = 1;
     protected int mUid = -1;
+    protected UserModel mUserModel;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mUserModel = new ViewModelProvider(this).get(UserModel.class);
+
         mUid = PreferenceManager.getDefaultSharedPreferences(getApplicationContext())
                 .getInt(Constants.PF_UID, -1);
         if (mUid < 0) {
             Intent intent = LoginActivity.newIntent(this);
             startActivityForResult(intent, REQUEST_CODE_LOGIN);
         } else {
-            ensureSocket();
+            afterLogin();
         }
     }
 
@@ -41,7 +45,7 @@ public class BaseActivity extends AppCompatActivity {
                     .putInt(Constants.PF_UID, mUid)
                     .apply();
 
-            ensureSocket();
+            afterLogin();
 
             return;
         }
@@ -49,8 +53,10 @@ public class BaseActivity extends AppCompatActivity {
 
     }
 
-    private void ensureSocket() {
+    private void afterLogin() {
         SocketClient.ensureSocket(getApplicationContext(), mUid);
+
+        mUserModel.setUid(mUid);
     }
 
 }
