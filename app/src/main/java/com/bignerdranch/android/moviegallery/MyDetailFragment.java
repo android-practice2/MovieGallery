@@ -25,17 +25,12 @@ public class MyDetailFragment extends BaseFragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View inflate = inflater.inflate(R.layout.fragment_my_detail, container, false);
         mBinding = FragmentMyDetailBinding.bind(inflate);
-
-        if (savedInstanceState == null) {
-            Bundle args = new Bundle();
-            args.putInt(Constants.EXTRA_UID, mUid);
-            getFragmentManager().beginTransaction()
-                    .setReorderingAllowed(true)
-                    .add(R.id.fragment_container_view, UserDetailFragment.class, args)
-                    .commit();
-
-        }
-
+        Bundle args = new Bundle();
+        args.putInt(Constants.EXTRA_UID, mUid);
+        getFragmentManager().beginTransaction()
+                .setReorderingAllowed(true)
+                .add(R.id.fragment_container_view, UserDetailFragment.class, args)
+                .commit();
 
         return inflate;
     }

@@ -73,5 +73,5 @@ public interface AppClient {
     Single<PageResponseWrapper<User>> doListFriends(@QueryMap Map<String, String> request);
 
     @GET("Friends/isFriend")
-    Call<Boolean> isFriend(Integer selfUid, Integer uid);
+    Call<Boolean> isFriend(@Query("selfUid") Integer selfUid, @Query("uid") Integer uid);
 }
