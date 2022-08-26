@@ -241,13 +241,6 @@ public class SocketClient {
                     @Override
                     public void call(Object... args) {
                         Log.i(TAG, "onBye" + " " + Arrays.toString(args));
-                        String room = (String) args[0];
-
-                        ByeRequest request = new ByeRequest();
-                        request.setRoom(room);
-                        request.setUid(uid);
-                        bye(request);
-
                         mRoomCallback.onBye(args);
 
                     }

@@ -73,7 +73,7 @@ public class VideoActivity extends BaseActivity {
 
     @Override
     protected void onDestroy() {
-        endCall();
+        WebRTCClient.getInstance().endCall();
 
         super.onDestroy();
 
@@ -358,10 +358,10 @@ public class VideoActivity extends BaseActivity {
     private void endCall() {
         if (WebRTCClient.getInstance() != null) {
             WebRTCClient.getInstance().endCall();
+            finish();
         } else {
             Log.e(TAG, "mWebRTCClient_is_null");
         }
-        finish();
     }
 
     public class WebRTCDataChannelCallback implements WebRTCDataChannel.Callback {
