@@ -30,12 +30,11 @@ import pub.devrel.easypermissions.EasyPermissions;
 public class VideoActivity extends BaseActivity {
 
     private int mPeerUid;
-
-    private com.bignerdranch.android.moviegallery.databinding.ActivityVideoBinding mBinding;
     private String mRoom;
     private boolean mIsInitiator;
+
+    private com.bignerdranch.android.moviegallery.databinding.ActivityVideoBinding mBinding;
     private ControlState mControlState = new ControlState();
-    private SocketClient mSocketClient = SocketClient.getInstance();
 
     public static Intent newIntent(Context context, Integer peerUid, String room
             , boolean isInitiator) {
@@ -54,8 +53,8 @@ public class VideoActivity extends BaseActivity {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         SocketClient.setRoomCallback(new SocketRoomCallback());
-        if (mSocketClient.getCountDownLatch() != null) {//callee
-            mSocketClient.getCountDownLatch().countDown();
+        if (DecideActivity.mCountDownLatch != null) {//callee
+            DecideActivity.mCountDownLatch.countDown();
         }
 
         mPeerUid = getIntent().getIntExtra(Constants.EXTRA_PEER_UID, -1);
@@ -84,7 +83,7 @@ public class VideoActivity extends BaseActivity {
         callRequest.setUid(mUid);
         callRequest.setPeerUid(mPeerUid);
 
-        mSocketClient.call(callRequest);
+        SocketClient.getInstance().call(callRequest);
     }
 
     private void setupViewBehavior() {
@@ -132,10 +131,7 @@ public class VideoActivity extends BaseActivity {
         mBinding.endCallButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ByeRequest byeRequest = new ByeRequest();
-                byeRequest.setRoom(mRoom);
-                byeRequest.setUid(mUid);
-                mSocketClient.bye(byeRequest);
+                bye();
 
                 endCall(mRoom);
 
@@ -151,6 +147,13 @@ public class VideoActivity extends BaseActivity {
         setupMessagingViewBehavior();
 
 
+    }
+
+    private void bye() {
+        ByeRequest byeRequest = new ByeRequest();
+        byeRequest.setRoom(mRoom);
+        byeRequest.setUid(mUid);
+        SocketClient.getInstance().bye(byeRequest);
     }
 
     private void setupMessagingViewBehavior() {
@@ -226,23 +229,30 @@ public class VideoActivity extends BaseActivity {
 //        }
 //    }
 
+    //    private void instantiateWebRTC() {
+//        if (mIsInitiator) {
+//            new WebRTCClient(getApplication(),
+//                    mRoom,
+//                    mBinding.localSurface,
+//                    mBinding.remoteSurface,
+//                    new WebRTCDataChannelCallback()
+//            );
+//        } else {//callee, webRTCClient have been instantiated
+//            WebRTCClient.getInstance().bindView(mBinding.localSurface,
+//                    mBinding.remoteSurface,
+//                    new WebRTCDataChannelCallback());
+//
+//        }
+//
+//    }
     private void instantiateWebRTC() {
-        if (mIsInitiator) {
-            new WebRTCClient(getApplication(),
-                    mRoom,
-                    mBinding.localSurface,
-                    mBinding.remoteSurface,
-                    new WebRTCDataChannelCallback()
-            );
-        } else {//callee, webRTCClient have been instantiated
-            WebRTCClient.getInstance().bindView(mBinding.localSurface,
-                    mBinding.remoteSurface,
-                    new WebRTCDataChannelCallback());
-
-        }
-
+        new WebRTCClient(getApplication(),
+                mRoom,
+                mBinding.localSurface,
+                mBinding.remoteSurface,
+                new WebRTCDataChannelCallback()
+        );
     }
-
 
 //    @Override
 //    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -299,9 +309,6 @@ public class VideoActivity extends BaseActivity {
             });
             if (mIsInitiator) {
                 WebRTCClient.getInstance().start();
-            } else {
-
-                // TODO: 2022/8/26
             }
         }
 

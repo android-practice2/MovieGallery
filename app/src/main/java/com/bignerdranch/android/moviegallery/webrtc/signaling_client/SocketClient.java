@@ -6,9 +6,8 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
-import com.bignerdranch.android.moviegallery.chat.VideoActivity;
+import com.bignerdranch.android.moviegallery.chat.DecideActivity;
 import com.bignerdranch.android.moviegallery.util.JsonUtil;
-import com.bignerdranch.android.moviegallery.webrtc.WebRTCClient;
 import com.bignerdranch.android.moviegallery.webrtc.signaling_client.constants.EventConstants;
 import com.bignerdranch.android.moviegallery.webrtc.signaling_client.model.ByeRequest;
 import com.bignerdranch.android.moviegallery.webrtc.signaling_client.model.CallRequest;
@@ -20,7 +19,6 @@ import org.json.JSONObject;
 
 import java.net.URISyntaxException;
 import java.util.Arrays;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import io.socket.client.IO;
@@ -40,13 +38,13 @@ public class SocketClient {
     private RoomCallback mRoomCallback;
     private SignalingCallback mSignalingCallback;
     private Context applicationContext;
-    private CountDownLatch mCountDownLatch;
 
     private static final SocketClient SINGLETON = new SocketClient();
 
     public static SocketClient getInstance() {
         return SINGLETON;
     }
+
 
     public interface RoomCallback {
 
@@ -71,6 +69,10 @@ public class SocketClient {
     public void call(CallRequest request) {
         Log.i(getClass().getSimpleName(), "doCall " + request);
         mSocket.emit(EventConstants.CALL, JsonUtil.toJsonObject(request));
+    }
+
+    public void join(JoinRequest joinRequest) {
+        mSocket.emit(EventConstants.JOIN, JsonUtil.toJsonObject(joinRequest));
     }
 
     public void bye(ByeRequest request) {
@@ -149,9 +151,6 @@ public class SocketClient {
         }
     }
 
-    public CountDownLatch getCountDownLatch() {
-        return mCountDownLatch;
-    }
 
     private void setupSocketEventListener(Integer uid) {
         mSocket
@@ -162,23 +161,10 @@ public class SocketClient {
                         JoinServerPush joinServerPush = JsonUtil.fromJsonObject((JSONObject) args[0], JoinServerPush.class);
                         Integer peerUid = joinServerPush.getPeerUid();
                         String room = joinServerPush.getRoom();
-                        new WebRTCClient(applicationContext, room);
 
-                        mCountDownLatch = new CountDownLatch(1);
-                        Intent intent = VideoActivity.newIntent(applicationContext, peerUid, room, false);
-                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        applicationContext.startActivity(intent);
+                        startDecideActivity(peerUid, room);
 
-                        try {
-                            mCountDownLatch.await();
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
 
-                        JoinRequest joinRequest = new JoinRequest();
-                        joinRequest.setRoom(joinServerPush.getRoom());
-                        joinRequest.setUid(joinServerPush.getUid());
-                        mSocket.emit(EventConstants.JOIN, JsonUtil.toJsonObject(joinRequest));
                     }
                 })
                 .on(EventConstants.CREATED, new Emitter.Listener() {
@@ -262,6 +248,12 @@ public class SocketClient {
                 })
 
         ;
+    }
+
+    private void startDecideActivity(Integer peerUid, String room) {
+        Intent intent = DecideActivity.newIntent(applicationContext, peerUid, room);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        applicationContext.startActivity(intent);
     }
 
 

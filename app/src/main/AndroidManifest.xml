@@ -41,6 +41,7 @@
         <activity android:name=".NearbyDetailActivity" />
         <activity android:name=".chat.VideoActivity" />
         <activity android:name=".chat.ChatActivity" />
+        <activity android:name=".chat.DecideActivity" />
 
         <provider
             android:name="androidx.startup.InitializationProvider"
