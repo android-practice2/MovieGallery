@@ -299,6 +299,9 @@ public class VideoActivity extends BaseActivity {
             });
             if (mIsInitiator) {
                 WebRTCClient.getInstance().start();
+            } else {
+
+                // TODO: 2022/8/26
             }
         }
 

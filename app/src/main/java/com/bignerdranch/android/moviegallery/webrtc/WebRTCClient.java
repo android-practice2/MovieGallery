@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class WebRTCClient {
+    public static final String TAG = "WebRTCClient";
     public static final boolean FEATURE_DATA_CHANNEL_ENABLE = true;
     public static final int VIDEO_RESOLUTION_WIDTH = 320;
     public static final int VIDEO_RESOLUTION_HEIGHT = 240;
@@ -188,10 +189,13 @@ public class WebRTCClient {
             @Override
             public void onCreateSuccess(SessionDescription sessionDescription) {
                 super.onCreateSuccess(sessionDescription);
+                mPeerConnection.setLocalDescription(new BaseSdpObserver(), sessionDescription);
+
                 SignalingMessage message = new SignalingMessage();
                 message.setRoom(room);
                 message.setType(SinglingConstants.OFFER);
                 message.setContent(sessionDescription);
+                Log.i(TAG, "doOffer," + message);
                 mSocketClient.messaging(message);
             }
         }, constraints);
@@ -292,6 +296,7 @@ public class WebRTCClient {
             String type = message.getType();
             switch (type) {
                 case SinglingConstants.ICE_CANDIDATE: {
+                    Log.i(TAG, "onCandidate," + message);
                     IceCandidateDTO dto = JsonUtil.fromObj(message.getContent(), IceCandidateDTO.class);
                     IceCandidate iceCandidate = new IceCandidate(dto.sdpMid, dto.sdpMLineIndex, dto.sdp);
 
@@ -299,6 +304,7 @@ public class WebRTCClient {
                     break;
                 }
                 case SinglingConstants.OFFER: {
+                    Log.i(TAG, "onOffer," + message);
                     SessionDescriptionDTO dto = JsonUtil.fromObj(message.getContent(), SessionDescriptionDTO.class);
                     SessionDescription sessionDescription = new SessionDescription(dto.type, dto.description);
 
@@ -310,11 +316,13 @@ public class WebRTCClient {
                         @Override
                         public void onCreateSuccess(SessionDescription sessionDescription) {
                             super.onCreateSuccess(sessionDescription);
+                            mPeerConnection.setLocalDescription(new BaseSdpObserver(), sessionDescription);
 
                             SignalingMessage msg = new SignalingMessage();
                             msg.setRoom(room);
                             msg.setType(SinglingConstants.ANSWER);
                             msg.setContent(sessionDescription);
+                            Log.i(TAG, "doAnswer," + msg);
                             mSocketClient.messaging(msg);
                         }
                     }, constraints);
@@ -322,6 +330,7 @@ public class WebRTCClient {
                     break;
                 }
                 case SinglingConstants.ANSWER: {
+                    Log.i(TAG, "onAnswer," + message);
                     SessionDescriptionDTO dto = JsonUtil.fromObj(message.getContent(), SessionDescriptionDTO.class);
                     SessionDescription sessionDescription = new SessionDescription(dto.type, dto.description);
                     mPeerConnection.setRemoteDescription(new BaseSdpObserver(), sessionDescription);
@@ -342,7 +351,7 @@ public class WebRTCClient {
             message.setType(SinglingConstants.ICE_CANDIDATE);
             message.setRoom(room);
             message.setContent(iceCandidate);
-
+            Log.i(getClass().getSimpleName(), "doCandidate," + message);
             mSocketClient.messaging(message);
         }
 

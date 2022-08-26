@@ -164,11 +164,11 @@ public class SocketClient {
                         String room = joinServerPush.getRoom();
                         new WebRTCClient(applicationContext, room);
 
+                        mCountDownLatch = new CountDownLatch(1);
                         Intent intent = VideoActivity.newIntent(applicationContext, peerUid, room, false);
                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         applicationContext.startActivity(intent);
 
-                        mCountDownLatch = new CountDownLatch(1);
                         try {
                             mCountDownLatch.await();
                         } catch (InterruptedException e) {
