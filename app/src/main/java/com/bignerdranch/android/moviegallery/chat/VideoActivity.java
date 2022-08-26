@@ -73,7 +73,7 @@ public class VideoActivity extends BaseActivity {
 
     @Override
     protected void onDestroy() {
-        WebRTCClient.getInstance().endCall();
+        WebRTCClient.getInstance().endCall(mRoom);
 
         super.onDestroy();
 
@@ -138,7 +138,7 @@ public class VideoActivity extends BaseActivity {
                 byeRequest.setUid(mUid);
                 mSocketClient.bye(byeRequest);
 
-                endCall();
+                endCall(mRoom);
                 finish();
 
             }
@@ -304,20 +304,9 @@ public class VideoActivity extends BaseActivity {
             }
         }
 
-        @Override
-        public void onBusy(Object... args) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    Toast.makeText(VideoActivity.this, "onBusy", Toast.LENGTH_SHORT).show();
-
-                }
-            });
-            endCall();
-        }
 
         @Override
-        public void onOffline(Object... args) {
+        public void onOffline(String room) {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -325,26 +314,13 @@ public class VideoActivity extends BaseActivity {
 
                 }
             });
-            endCall();
+            endCall(room);
 
         }
 
 
         @Override
-        public void onPeer_leaved(Object... args) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    Toast.makeText(VideoActivity.this, "onPeer_leaved", Toast.LENGTH_SHORT).show();
-
-                }
-            });
-            Log.i(TAG, "onPeer_leaved_endCAll");
-            endCall();
-        }
-
-        @Override
-        public void onBye(Object... args) {
+        public void onBye(String room) {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -352,13 +328,13 @@ public class VideoActivity extends BaseActivity {
                 }
             });
             Log.i(TAG, "onBye_endCAll");
-            endCall();
+            endCall(room);
         }
     }
 
-    private void endCall() {
+    private void endCall(String room) {
         if (WebRTCClient.getInstance() != null) {
-            WebRTCClient.getInstance().endCall();
+            WebRTCClient.getInstance().endCall(room);
         } else {
             Log.e(TAG, "mWebRTCClient_is_null");
         }

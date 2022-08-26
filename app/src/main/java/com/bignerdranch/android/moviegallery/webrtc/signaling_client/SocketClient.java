@@ -1,6 +1,5 @@
 package com.bignerdranch.android.moviegallery.webrtc.signaling_client;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
@@ -24,7 +23,6 @@ import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import io.socket.client.Ack;
 import io.socket.client.IO;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
@@ -54,17 +52,14 @@ public class SocketClient {
 
         void onCreated(Object... args);
 
-        void onBusy(Object... args);
 
-        void onOffline(Object... args);
+        void onOffline(String room);
 
         void onJoined(Object... args);
 
         void onReady(Object... args);
 
-        void onPeer_leaved(Object... args);
-
-        void onBye(Object... args);
+        void onBye(String room);
 
     }
 
@@ -204,22 +199,12 @@ public class SocketClient {
 
                     }
                 })
-                .on(EventConstants.BUSY, new Emitter.Listener() {
-                    @Override
-                    public void call(Object... args) {
-                        Log.i(TAG, "onBusy" + " " + Arrays.toString(args));
-                        mRoomCallback.onBusy(args);
-                    }
-                })
 
                 .on(EventConstants.READY, new Emitter.Listener() {
                     @Override
                     public void call(Object... args) {
                         Log.i(TAG, "onReady" + " " + Arrays.toString(args));
-//                        if (mRoomCallback != null) {
-//                            mRoomCallback.onReady(args);
-//
-//                        }
+
                         mRoomCallback.onReady(args);
 
                     }
@@ -227,21 +212,16 @@ public class SocketClient {
                     @Override
                     public void call(Object... args) {
                         Log.i(TAG, "onOffline" + " " + Arrays.toString(args));
-                        mRoomCallback.onOffline(args);
-
-                    }
-                }).on(EventConstants.PEER_LEAVED, new Emitter.Listener() {
-                    @Override
-                    public void call(Object... args) {
-                        Log.i(TAG, "onPeer_leaved" + " " + Arrays.toString(args));
-                        mRoomCallback.onPeer_leaved(args);
+                        String room = (String) args[0];
+                        mRoomCallback.onOffline(room);
 
                     }
                 }).on(EventConstants.BYE, new Emitter.Listener() {
                     @Override
                     public void call(Object... args) {
                         Log.i(TAG, "onBye" + " " + Arrays.toString(args));
-                        mRoomCallback.onBye(args);
+                        String room = (String) args[0];
+                        mRoomCallback.onBye(room);
 
                     }
                 }).on(EventConstants.MESSAGE, new Emitter.Listener() {

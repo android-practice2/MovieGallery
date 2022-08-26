@@ -10,10 +10,7 @@ import com.bignerdranch.android.moviegallery.webrtc.model.SessionDescriptionDTO;
 import com.bignerdranch.android.moviegallery.webrtc.signaling_client.SocketClient;
 import com.bignerdranch.android.moviegallery.webrtc.signaling_client.constants.SinglingConstants;
 import com.bignerdranch.android.moviegallery.webrtc.signaling_client.model.SignalingMessage;
-import com.google.gson.Gson;
-import com.google.gson.internal.LinkedTreeMap;
 
-import org.json.JSONObject;
 import org.webrtc.AudioSource;
 import org.webrtc.AudioTrack;
 import org.webrtc.Camera2Enumerator;
@@ -37,6 +34,7 @@ import org.webrtc.VideoTrack;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 
 public class WebRTCClient {
     public static final boolean FEATURE_DATA_CHANNEL_ENABLE = true;
@@ -241,7 +239,11 @@ public class WebRTCClient {
         mVideoTrack.setEnabled(enable);
     }
 
-    public void endCall() {
+    public void endCall(String room) {
+        if (!Objects.equals(this.room, room)) {//late async event
+            Log.i(getClass().getSimpleName(), "endCall_room_diff,this room:" + this.room + ",peer room:" + room);
+            return;
+        }
         if (instance == null) {
             Log.e(getClass().getSimpleName(), "mPeerConnection_is_null");
             return;
