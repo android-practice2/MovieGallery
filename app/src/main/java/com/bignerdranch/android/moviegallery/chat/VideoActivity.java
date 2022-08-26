@@ -139,6 +139,7 @@ public class VideoActivity extends BaseActivity {
                 mSocketClient.bye(byeRequest);
 
                 endCall();
+                finish();
 
             }
         });
@@ -358,7 +359,6 @@ public class VideoActivity extends BaseActivity {
     private void endCall() {
         if (WebRTCClient.getInstance() != null) {
             WebRTCClient.getInstance().endCall();
-            finish();
         } else {
             Log.e(TAG, "mWebRTCClient_is_null");
         }

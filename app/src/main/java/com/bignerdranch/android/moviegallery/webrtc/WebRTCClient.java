@@ -250,7 +250,6 @@ public class WebRTCClient {
 
         Log.i(getClass().getSimpleName(), "endCall");
         mRemoteMediaStream.videoTracks.get(0).removeSink(remoteSurfaceViewRenderer);
-        mRemoteMediaStream.dispose();
 
         mVideoTrack.removeSink(localSurfaceViewRenderer);
 
@@ -261,7 +260,7 @@ public class WebRTCClient {
         mAudioSource.dispose();
         mCameraVideoCapturer.dispose();//must after mVideoSource\mAudioSource  dispose
 
-        mPeerConnection.dispose();//local MediaStream is managed by PeerConnection
+        mPeerConnection.dispose();// MediaStream is managed by PeerConnection
         mPeerConnectionFactory.dispose();
 
     }
