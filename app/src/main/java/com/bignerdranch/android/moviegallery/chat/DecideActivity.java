@@ -11,6 +11,7 @@ import com.bignerdranch.android.moviegallery.BaseActivity;
 import com.bignerdranch.android.moviegallery.R;
 import com.bignerdranch.android.moviegallery.constants.Constants;
 import com.bignerdranch.android.moviegallery.databinding.ActivityDecideBinding;
+import com.bignerdranch.android.moviegallery.util.ThreadPool;
 import com.bignerdranch.android.moviegallery.webrtc.signaling_client.SocketClient;
 import com.bignerdranch.android.moviegallery.webrtc.signaling_client.model.ByeRequest;
 import com.bignerdranch.android.moviegallery.webrtc.signaling_client.model.JoinRequest;
@@ -47,17 +48,23 @@ public class DecideActivity extends BaseActivity {
             @Override
             public void onClick(View v) {
 
-                mCountDownLatch = new CountDownLatch(1);
+                ThreadPool.getExecutorService().execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        mCountDownLatch = new CountDownLatch(1);
 
-                startVideoActivity();
+                        startVideoActivity();
 
-                try {
-                    mCountDownLatch.await();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+                        try {
+                            mCountDownLatch.await();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
 
-                join();
+                        join();
+                    }
+                });
+
             }
         });
 
@@ -93,9 +100,9 @@ public class DecideActivity extends BaseActivity {
     }
 
     private void startVideoActivity() {
-        Intent intent = VideoActivity.newIntent(getApplication(), mPeerUid, mRoom, false);
+        Intent intent = VideoActivity.newIntent(this, mPeerUid, mRoom, false);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        getApplication().startActivity(intent);
+        startActivity(intent);
     }
 
 }
