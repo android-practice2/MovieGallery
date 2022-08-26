@@ -57,6 +57,7 @@ public class WebRTCClient {
     private AudioSource mAudioSource;
     private VideoTrack mVideoTrack;
     private AudioTrack mAudioTrack;
+    private MediaStream mRemoteMediaStream;
 
     //media output component
     private SurfaceViewRenderer localSurfaceViewRenderer;
@@ -64,14 +65,14 @@ public class WebRTCClient {
 
 
     private String room;
-    private MediaStream mRemoteMediaStream;
 
     // dataChannel
     private WebRTCDataChannel mWebRTCDataChannel;
 
     private Context applicationContext;
 
-    private static WebRTCClient instance;
+
+    private static WebRTCClient instance;//need be set null while end call
 
     public static WebRTCClient getInstance() {
         return instance;
@@ -241,21 +242,28 @@ public class WebRTCClient {
     }
 
     public void endCall() {
-        if (mPeerConnection == null) {
+        if (instance == null) {
             Log.e(getClass().getSimpleName(), "mPeerConnection_is_null");
             return;
         }
+        instance = null;
+
         Log.i(getClass().getSimpleName(), "endCall");
+        mRemoteMediaStream.videoTracks.get(0).removeSink(remoteSurfaceViewRenderer);
+        mRemoteMediaStream.dispose();
+
+        mVideoTrack.removeSink(localSurfaceViewRenderer);
+
         localSurfaceViewRenderer.release();
         remoteSurfaceViewRenderer.release();
-        mVideoTrack.dispose();
-        mAudioTrack.dispose();
+
         mVideoSource.dispose();
         mAudioSource.dispose();
-        mCameraVideoCapturer.dispose();
+        mCameraVideoCapturer.dispose();//must after mVideoSource\mAudioSource  dispose
 
-        mPeerConnection.close();
-        mPeerConnection = null;
+        mPeerConnection.dispose();//local MediaStream is managed by PeerConnection
+        mPeerConnectionFactory.dispose();
+
     }
 
     public void setVolume(boolean enable) {
@@ -339,7 +347,7 @@ public class WebRTCClient {
         public void onAddStream(MediaStream mediaStream) {
             Log.i(getClass().getSimpleName(), "onAddStream" + " " + mediaStream);
             mRemoteMediaStream = mediaStream;
-            mediaStream.videoTracks.get(0).addSink(remoteSurfaceViewRenderer);
+            mRemoteMediaStream.videoTracks.get(0).addSink(remoteSurfaceViewRenderer);
 
         }
 

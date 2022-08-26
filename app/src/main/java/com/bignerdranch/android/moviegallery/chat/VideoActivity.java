@@ -33,7 +33,6 @@ public class VideoActivity extends BaseActivity {
 
     private com.bignerdranch.android.moviegallery.databinding.ActivityVideoBinding mBinding;
     private String mRoom;
-    private WebRTCClient mWebRTCClient;
     private boolean mIsInitiator;
     private ControlState mControlState = new ControlState();
     private SocketClient mSocketClient = SocketClient.getInstance();
@@ -74,7 +73,7 @@ public class VideoActivity extends BaseActivity {
 
     @Override
     protected void onDestroy() {
-        mWebRTCClient.endCall();
+        endCall();
 
         super.onDestroy();
 
@@ -93,7 +92,7 @@ public class VideoActivity extends BaseActivity {
         mBinding.micButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mWebRTCClient.setMic(mControlState.micEnable = !mControlState.micEnable);
+                WebRTCClient.getInstance().setMic(mControlState.micEnable = !mControlState.micEnable);
                 mBinding.micButton.setImageDrawable(
                         mControlState.micEnable ?
                                 AppCompatResources.getDrawable(VideoActivity.this, R.drawable.ic_baseline_mic_24)
@@ -104,7 +103,7 @@ public class VideoActivity extends BaseActivity {
         mBinding.videoButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mWebRTCClient.setVideo(mControlState.videoEnable = !mControlState.videoEnable);
+                WebRTCClient.getInstance().setVideo(mControlState.videoEnable = !mControlState.videoEnable);
                 mBinding.videoButton.setImageDrawable(
                         mControlState.videoEnable ?
                                 AppCompatResources.getDrawable(VideoActivity.this,
@@ -118,7 +117,7 @@ public class VideoActivity extends BaseActivity {
         mBinding.volumeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mWebRTCClient.setVolume(mControlState.volumeEnable = !mControlState.volumeEnable);
+                WebRTCClient.getInstance().setVolume(mControlState.volumeEnable = !mControlState.volumeEnable);
                 mBinding.volumeButton.setImageDrawable(
                         mControlState.volumeEnable ?
                                 AppCompatResources.getDrawable(VideoActivity.this,
@@ -139,14 +138,14 @@ public class VideoActivity extends BaseActivity {
                 byeRequest.setUid(mUid);
                 mSocketClient.bye(byeRequest);
 
-                mWebRTCClient.endCall();
-                finish();
+                endCall();
+
             }
         });
         mBinding.flipCameraButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mWebRTCClient.flipCamera();
+                WebRTCClient.getInstance().flipCamera();
             }
         });
 
@@ -183,7 +182,7 @@ public class VideoActivity extends BaseActivity {
                 @Override
                 public void onClick(View v) {
                     String message = mBinding.messageText.getText().toString();
-                    mWebRTCClient.sendMessage(message);
+                    WebRTCClient.getInstance().sendMessage(message);
                     mBinding.messageText.setText("");
                 }
             });
@@ -230,15 +229,14 @@ public class VideoActivity extends BaseActivity {
 
     private void instantiateWebRTC() {
         if (mIsInitiator) {
-            mWebRTCClient = new WebRTCClient(getApplication(),
+            new WebRTCClient(getApplication(),
                     mRoom,
                     mBinding.localSurface,
                     mBinding.remoteSurface,
                     new WebRTCDataChannelCallback()
             );
         } else {//callee, webRTCClient have been instantiated
-            mWebRTCClient = WebRTCClient.getInstance();
-            mWebRTCClient.bindView(mBinding.localSurface,
+            WebRTCClient.getInstance().bindView(mBinding.localSurface,
                     mBinding.remoteSurface,
                     new WebRTCDataChannelCallback());
 
@@ -301,7 +299,7 @@ public class VideoActivity extends BaseActivity {
                 }
             });
             if (mIsInitiator) {
-                mWebRTCClient.start();
+                WebRTCClient.getInstance().start();
             }
         }
 
@@ -314,9 +312,7 @@ public class VideoActivity extends BaseActivity {
 
                 }
             });
-            if (mWebRTCClient != null) {
-                mWebRTCClient.endCall();
-            }
+            endCall();
         }
 
         @Override
@@ -328,10 +324,7 @@ public class VideoActivity extends BaseActivity {
 
                 }
             });
-            if (mWebRTCClient != null) {
-                mWebRTCClient.endCall();
-
-            }
+            endCall();
 
         }
 
@@ -345,10 +338,8 @@ public class VideoActivity extends BaseActivity {
 
                 }
             });
-            if (mWebRTCClient != null) {
-                mWebRTCClient.endCall();
-
-            }
+            Log.i(TAG, "onPeer_leaved_endCAll");
+            endCall();
         }
 
         @Override
@@ -359,12 +350,18 @@ public class VideoActivity extends BaseActivity {
                     Toast.makeText(VideoActivity.this, "onBye", Toast.LENGTH_SHORT).show();
                 }
             });
-            if (mWebRTCClient != null) {
-                mWebRTCClient.endCall();
-            } else {
-                Log.e(TAG, "mWebRTCClient_is_null");
-            }
+            Log.i(TAG, "onBye_endCAll");
+            endCall();
         }
+    }
+
+    private void endCall() {
+        if (WebRTCClient.getInstance() != null) {
+            WebRTCClient.getInstance().endCall();
+        } else {
+            Log.e(TAG, "mWebRTCClient_is_null");
+        }
+        finish();
     }
 
     public class WebRTCDataChannelCallback implements WebRTCDataChannel.Callback {
