@@ -73,8 +73,7 @@ public class VideoActivity extends BaseActivity {
 
     @Override
     protected void onDestroy() {
-        WebRTCClient.getInstance().endCall(mRoom);
-
+        endCall(mRoom);
         super.onDestroy();
 
     }
@@ -139,7 +138,6 @@ public class VideoActivity extends BaseActivity {
                 mSocketClient.bye(byeRequest);
 
                 endCall(mRoom);
-                finish();
 
             }
         });
@@ -335,6 +333,7 @@ public class VideoActivity extends BaseActivity {
     private void endCall(String room) {
         if (WebRTCClient.getInstance() != null) {
             WebRTCClient.getInstance().endCall(room);
+            finish();
         } else {
             Log.e(TAG, "mWebRTCClient_is_null");
         }
