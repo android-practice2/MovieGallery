@@ -78,7 +78,7 @@
 
     </RelativeLayout>
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/controls"
         android:background="@drawable/curve_background"
         android:backgroundTint="@android:color/secondary_text_light"
@@ -91,18 +91,30 @@
 
         >
 
+        <androidx.constraintlayout.helper.widget.Flow
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:flow_horizontalStyle="spread"
+            app:constraint_referenced_ids="mic_button,video_button,end_call_button,flip_camera_button,volume_button"></androidx.constraintlayout.helper.widget.Flow>
+
         <ImageView
             android:id="@+id/mic_button"
             android:background="@drawable/circle_background"
             android:backgroundTint="@color/cardview_dark_background"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="16dp"
             android:padding="12dp"
             android:clickable="true"
             android:focusable="true"
             android:src="@drawable/ic_baseline_mic_24"
-            android:layout_gravity="center_vertical" />
+            android:layout_gravity="center_vertical"
+            android:contentDescription="" />
 
         <ImageView
             android:id="@+id/video_button"
@@ -110,12 +122,12 @@
             android:backgroundTint="@color/cardview_dark_background"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="16dp"
             android:padding="12dp"
             android:clickable="true"
             android:focusable="true"
             app:srcCompat="@drawable/ic_baseline_videocam_24"
-            android:layout_gravity="center_vertical" />
+            android:layout_gravity="center_vertical"
+            android:contentDescription="" />
 
         <ImageView
             android:id="@+id/end_call_button"
@@ -123,12 +135,12 @@
             android:backgroundTint="@android:color/holo_red_dark"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="16dp"
             android:padding="12dp"
             android:clickable="true"
             android:focusable="true"
             app:srcCompat="@drawable/ic_baseline_call_end_24"
-            android:layout_gravity="center_vertical" />
+            android:layout_gravity="center_vertical"
+            android:contentDescription="" />
 
         <ImageView
             android:id="@+id/flip_camera_button"
@@ -136,12 +148,13 @@
             android:backgroundTint="@color/cardview_dark_background"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="16dp"
+
             android:padding="12dp"
             android:clickable="true"
             android:focusable="true"
             app:srcCompat="@drawable/ic_baseline_flip_camera_android_24"
-            android:layout_gravity="center_vertical" />
+            android:layout_gravity="center_vertical"
+            android:contentDescription="" />
 
         <ImageView
             android:id="@+id/volume_button"
@@ -149,14 +162,15 @@
             android:backgroundTint="@color/cardview_dark_background"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="16dp"
+
             android:padding="12dp"
             android:clickable="true"
             android:focusable="true"
             app:srcCompat="@drawable/ic_baseline_volume_up_24"
-            android:layout_gravity="center_vertical" />
+            android:layout_gravity="center_vertical"
+            android:contentDescription="" />
 
 
-    </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </RelativeLayout>
