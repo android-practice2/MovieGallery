@@ -4,6 +4,7 @@ import android.app.Application;
 import android.content.Context;
 import android.util.Log;
 
+import com.bignerdranch.android.moviegallery.util.ByteBufferUti;
 import com.bignerdranch.android.moviegallery.util.JsonUtil;
 import com.bignerdranch.android.moviegallery.webrtc.model.IceCandidateDTO;
 import com.bignerdranch.android.moviegallery.webrtc.model.SessionDescriptionDTO;
@@ -31,6 +32,7 @@ import org.webrtc.SurfaceViewRenderer;
 import org.webrtc.VideoSource;
 import org.webrtc.VideoTrack;
 
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -45,6 +47,7 @@ public class WebRTCClient {
     //    public static final String STUN_SERVER_URL = "stun:stun.l.google.com:19302";
     public static final String STUN_SERVER_URL = "stun:socialme.hopto.org:3478"; //not ssl
     private final SocketClient mSocketClient = SocketClient.getInstance();
+    private Context applicationContext;
     // webrtc component
     private EglBase mEglBase;
     private PeerConnectionFactory mPeerConnectionFactory;
@@ -63,12 +66,12 @@ public class WebRTCClient {
     private SurfaceViewRenderer remoteSurfaceViewRenderer;
 
 
+    //     data channel
+    private Callback mMessagingCallback;
+    private DataChannel mDataChannel;
+
+    //biz args
     private String room;
-
-    // dataChannel
-    private WebRTCDataChannel mWebRTCDataChannel;
-
-    private Context applicationContext;
 
 
     private static WebRTCClient instance;//need be set null while end call
@@ -81,36 +84,33 @@ public class WebRTCClient {
     public WebRTCClient(Application applicationContext,
                         String room, SurfaceViewRenderer localSurfaceViewRenderer,
                         SurfaceViewRenderer remoteSurfaceViewRenderer,
-                        WebRTCDataChannel.Callback messagingCallback
+                        Callback messagingCallback
     ) {
         this.applicationContext = applicationContext;
         this.room = room;
         setupConnection(applicationContext);
-        //setup signaling listener
+
         SocketClient.setSignalingCallback(new SocketSignalingCallback());
 
-        instance = this;
+        setupDataChannel(messagingCallback);
 
-        bindView(localSurfaceViewRenderer, remoteSurfaceViewRenderer, messagingCallback);
-
-
-    }
-
-    public void bindView(SurfaceViewRenderer localSurfaceViewRenderer, SurfaceViewRenderer remoteSurfaceViewRenderer
-            , WebRTCDataChannel.Callback messagingCallback) {
-        // init SurfaceViewRenderer
         setupSurface(localSurfaceViewRenderer, remoteSurfaceViewRenderer);
 
         startStreamingLocal();
 
-        setupDataChannel(messagingCallback);
+        instance = this;
+
+
     }
 
-    private void setupDataChannel(WebRTCDataChannel.Callback messagingCallback) {
+    private void setupDataChannel(Callback messagingCallback) {
         if (FEATURE_DATA_CHANNEL_ENABLE) {
-            mWebRTCDataChannel = new WebRTCDataChannel(mPeerConnection, messagingCallback);
+            mDataChannel = mPeerConnection.createDataChannel("dataChannel", new DataChannel.Init());
+            mDataChannel.registerObserver(new DataChannelObserver());
+            mMessagingCallback = messagingCallback;
         }
     }
+
 
     private void setupSurface(SurfaceViewRenderer localSurfaceViewRenderer, SurfaceViewRenderer remoteSurfaceViewRenderer) {
         this.localSurfaceViewRenderer = localSurfaceViewRenderer;
@@ -159,25 +159,17 @@ public class WebRTCClient {
         List<PeerConnection.IceServer> iceServers = new LinkedList<>();
         iceServers.add(PeerConnection.IceServer.builder(STUN_SERVER_URL).createIceServer());
 
+        MediaConstraints constraints = new MediaConstraints();
+        constraints.optional.add(new MediaConstraints.KeyValuePair("DtlsSrtpKeyAgreement", "true"));
         mPeerConnection = mPeerConnectionFactory.createPeerConnection(
                 iceServers,
+                constraints,
                 new PeerConnectionObserver()
         );
     }
 
 
-    public void start() {
-
-        startSignaling();
-
-        if (FEATURE_DATA_CHANNEL_ENABLE) {
-            mWebRTCDataChannel.setupDataChannel();
-
-        }
-    }
-
-
-    private void startSignaling() {
+    public void startSignaling() {
         MediaConstraints constraints = new MediaConstraints();
 //        constraints.mandatory.add(new MediaConstraints.KeyValuePair("OfferToReceiveVideo", "true"));
 
@@ -297,7 +289,11 @@ public class WebRTCClient {
     }
 
     public void sendMessage(String message) {
-        mWebRTCDataChannel.sendData(message);
+        Log.i(getClass().getSimpleName(), "dataChannel_sendData:" + message);
+
+        ByteBuffer byteBuffer = ByteBufferUti.str_to_bb(message);
+        DataChannel.Buffer buffer = new DataChannel.Buffer(byteBuffer, false);
+        mDataChannel.send(buffer);
 
     }
 
@@ -415,7 +411,8 @@ public class WebRTCClient {
         @Override
         public void onDataChannel(DataChannel dataChannel) {
             Log.i(getClass().getSimpleName(), "onDataChannel" + " " + dataChannel);
-            mWebRTCDataChannel.setupDataChannel(dataChannel);
+            mDataChannel = dataChannel;
+            mDataChannel.registerObserver(new DataChannelObserver());
 
         }
 
@@ -432,5 +429,30 @@ public class WebRTCClient {
         }
     }
 
+    public class DataChannelObserver implements DataChannel.Observer {
+        @Override
+        public void onBufferedAmountChange(long l) {
+            Log.i(getClass().getSimpleName(), "dataChannel_onBufferedAmountChange:" + l);
+
+        }
+
+        @Override
+        public void onStateChange() {
+            Log.i(getClass().getSimpleName(), "dataChannel_onStateChange");
+
+        }
+
+        @Override
+        public void onMessage(DataChannel.Buffer buffer) {
+            ByteBuffer data = buffer.data;
+            String message = ByteBufferUti.bb_to_str(data);
+            Log.i(getClass().getSimpleName(), "dataChannel_onMessage:" + message);
+            mMessagingCallback.onMessage(message);
+        }
+    }
+
+    public interface Callback {
+        void onMessage(String message);
+    }
 
 }

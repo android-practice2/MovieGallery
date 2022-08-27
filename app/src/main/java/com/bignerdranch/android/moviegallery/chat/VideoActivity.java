@@ -19,7 +19,6 @@ import com.bignerdranch.android.moviegallery.R;
 import com.bignerdranch.android.moviegallery.constants.Constants;
 import com.bignerdranch.android.moviegallery.databinding.ActivityVideoBinding;
 import com.bignerdranch.android.moviegallery.webrtc.WebRTCClient;
-import com.bignerdranch.android.moviegallery.webrtc.WebRTCDataChannel;
 import com.bignerdranch.android.moviegallery.webrtc.signaling_client.SocketClient;
 import com.bignerdranch.android.moviegallery.webrtc.signaling_client.model.ByeRequest;
 import com.bignerdranch.android.moviegallery.webrtc.signaling_client.model.CallRequest;
@@ -308,7 +307,7 @@ public class VideoActivity extends BaseActivity {
                 }
             });
             if (mIsInitiator) {
-                WebRTCClient.getInstance().start();
+                WebRTCClient.getInstance().startSignaling();
             }
         }
 
@@ -349,7 +348,7 @@ public class VideoActivity extends BaseActivity {
         }
     }
 
-    public class WebRTCDataChannelCallback implements WebRTCDataChannel.Callback {
+    public class WebRTCDataChannelCallback implements WebRTCClient.Callback {
         @Override
         public void onMessage(String message) {
             mBinding.messageReceived.setVisibility(View.VISIBLE);
