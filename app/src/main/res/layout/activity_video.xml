@@ -101,7 +101,7 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:flow_horizontalStyle="spread"
-            app:constraint_referenced_ids="mic_button,video_button,end_call_button,flip_camera_button,volume_button"></androidx.constraintlayout.helper.widget.Flow>
+            app:constraint_referenced_ids="mic_button,video_button,end_call_button,flip_camera_button,volume_button" />
 
         <ImageView
             android:id="@+id/mic_button"
