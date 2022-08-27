@@ -179,7 +179,7 @@ public class WebRTCClient {
 
     private void startSignaling() {
         MediaConstraints constraints = new MediaConstraints();
-        constraints.mandatory.add(new MediaConstraints.KeyValuePair("OfferToReceiveVideo", "true"));
+//        constraints.mandatory.add(new MediaConstraints.KeyValuePair("OfferToReceiveVideo", "true"));
 
         mPeerConnection.createOffer(new BaseSdpObserver() {
             @Override
@@ -367,7 +367,7 @@ public class WebRTCClient {
         }
 
         @Override
-        public void onAddStream(MediaStream mediaStream) {
+        public void onAddStream(MediaStream mediaStream) {//To get the sound of the interlocutor we don’t need to do anything extra
             Log.i(getClass().getSimpleName(), "onAddStream" + " " + mediaStream);
             mRemoteMediaStream = mediaStream;
             mRemoteMediaStream.videoTracks.get(0).addSink(remoteSurfaceViewRenderer);
