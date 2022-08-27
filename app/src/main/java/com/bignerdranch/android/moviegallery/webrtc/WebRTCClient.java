@@ -266,7 +266,7 @@ public class WebRTCClient {
         instance = null;
 
         Log.i(getClass().getSimpleName(), "endCall");
-        if (mRemoteMediaStream.videoTracks != null) {
+        if (mRemoteMediaStream != null && mRemoteMediaStream.videoTracks != null) {
             mRemoteMediaStream.videoTracks.get(0).removeSink(remoteSurfaceViewRenderer);
         }
 
