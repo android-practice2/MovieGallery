@@ -189,8 +189,7 @@ public class VideoActivity extends BaseActivity {
             });
 
         } else {
-            mBinding.messageReceived.setVisibility(View.GONE);
-            mBinding.messageLayout.setVisibility(View.GONE);
+            mBinding.messagingLayout.setVisibility(View.GONE);
 
         }
     }
@@ -348,11 +347,41 @@ public class VideoActivity extends BaseActivity {
         }
     }
 
-    public class WebRTCDataChannelCallback implements WebRTCClient.Callback {
+    public class WebRTCDataChannelCallback implements WebRTCClient.DataChannelCallback {
         @Override
         public void onMessage(String message) {
-            mBinding.messageReceived.setVisibility(View.VISIBLE);
-            mBinding.messageReceived.setText(message);
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mBinding.messageReceived.setVisibility(View.VISIBLE);
+                    mBinding.messageReceived.setText(message);
+                }
+            });
+
+        }
+
+        @Override
+        public void onOpen() {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mBinding.messagingLayout.setVisibility(View.VISIBLE);
+
+                }
+            });
+
+        }
+
+        @Override
+        public void onClose() {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mBinding.messagingLayout.setVisibility(View.VISIBLE);
+
+                }
+            });
+
         }
     }
 

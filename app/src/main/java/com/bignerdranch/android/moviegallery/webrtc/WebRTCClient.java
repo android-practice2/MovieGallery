@@ -67,7 +67,7 @@ public class WebRTCClient {
 
 
     //     data channel
-    private Callback mMessagingCallback;
+    private DataChannelCallback mDataChannelCallback;
     private DataChannel mDataChannel;
 
     //biz args
@@ -84,7 +84,7 @@ public class WebRTCClient {
     public WebRTCClient(Application applicationContext,
                         String room, SurfaceViewRenderer localSurfaceViewRenderer,
                         SurfaceViewRenderer remoteSurfaceViewRenderer,
-                        Callback messagingCallback
+                        DataChannelCallback dataChannelCallback
     ) {
         this.applicationContext = applicationContext;
         this.room = room;
@@ -92,7 +92,7 @@ public class WebRTCClient {
 
         SocketClient.setSignalingCallback(new SocketSignalingCallback());
 
-        setupDataChannel(messagingCallback);
+        setupDataChannel(dataChannelCallback);
 
         setupSurface(localSurfaceViewRenderer, remoteSurfaceViewRenderer);
 
@@ -103,11 +103,11 @@ public class WebRTCClient {
 
     }
 
-    private void setupDataChannel(Callback messagingCallback) {
+    private void setupDataChannel(DataChannelCallback messagingCallback) {
         if (FEATURE_DATA_CHANNEL_ENABLE) {
             mDataChannel = mPeerConnection.createDataChannel("dataChannel", new DataChannel.Init());
             mDataChannel.registerObserver(new DataChannelObserver());
-            mMessagingCallback = messagingCallback;
+            mDataChannelCallback = messagingCallback;
         }
     }
 
@@ -440,6 +440,12 @@ public class WebRTCClient {
         public void onStateChange() {
             Log.i(getClass().getSimpleName(), "dataChannel_onStateChange");
 
+            if (mDataChannel.state() == DataChannel.State.OPEN) {
+                mDataChannelCallback.onOpen();
+
+            } else {
+                mDataChannelCallback.onClose();
+            }
         }
 
         @Override
@@ -447,12 +453,17 @@ public class WebRTCClient {
             ByteBuffer data = buffer.data;
             String message = ByteBufferUti.bb_to_str(data);
             Log.i(getClass().getSimpleName(), "dataChannel_onMessage:" + message);
-            mMessagingCallback.onMessage(message);
+            mDataChannelCallback.onMessage(message);
         }
     }
 
-    public interface Callback {
+    public interface DataChannelCallback {
         void onMessage(String message);
+
+        void onOpen();
+
+        void onClose();
+
     }
 
 }
