@@ -77,7 +77,12 @@ public class WebRTCClient {
         return instance;
     }
 
-    public WebRTCClient(Context applicationContext, String room) {
+
+    public WebRTCClient(Application applicationContext,
+                        String room, SurfaceViewRenderer localSurfaceViewRenderer,
+                        SurfaceViewRenderer remoteSurfaceViewRenderer,
+                        WebRTCDataChannel.Callback messagingCallback
+    ) {
         this.applicationContext = applicationContext;
         this.room = room;
         setupConnection(applicationContext);
@@ -85,19 +90,6 @@ public class WebRTCClient {
         SocketClient.setSignalingCallback(new SocketSignalingCallback());
 
         instance = this;
-
-// create media component: mCameraVideoCapturer
-        setupCameraCapturer(applicationContext);
-
-    }
-
-    public WebRTCClient(Application applicationContext,
-                        String room, SurfaceViewRenderer localSurfaceViewRenderer,
-                        SurfaceViewRenderer remoteSurfaceViewRenderer,
-                        WebRTCDataChannel.Callback messagingCallback
-    ) {
-        this(applicationContext, room);
-
 
         bindView(localSurfaceViewRenderer, remoteSurfaceViewRenderer, messagingCallback);
 
@@ -127,19 +119,23 @@ public class WebRTCClient {
         initSurfaceViewRenderer(remoteSurfaceViewRenderer);
     }
 
-    private void setupCameraCapturer(Context applicationContext) {
+    private CameraVideoCapturer getCameraCapturer(Context applicationContext) {
+        CameraVideoCapturer cameraVideoCapturer = null;
         Camera2Enumerator camera2Enumerator = new Camera2Enumerator(applicationContext);
         for (String deviceName : camera2Enumerator.getDeviceNames()) {
             boolean frontFacing = camera2Enumerator.isFrontFacing(deviceName);
             if (frontFacing) {
                 Log.i(getClass().getSimpleName(), "camera_deviceName:" + deviceName);
-                mCameraVideoCapturer = camera2Enumerator.createCapturer(deviceName, null);
+                cameraVideoCapturer = camera2Enumerator.createCapturer(deviceName, null);
                 break;
             }
         }
-        if (mCameraVideoCapturer == null) {
+        if (cameraVideoCapturer == null) {
             throw new IllegalStateException();
         }
+
+        mCameraVideoCapturer = cameraVideoCapturer;
+        return cameraVideoCapturer;
     }
 
     private void setupConnection(Context applicationContext) {
@@ -203,23 +199,38 @@ public class WebRTCClient {
 
 
     private void startStreamingLocal() {
-        mVideoSource = mPeerConnectionFactory.createVideoSource(false);
+        MediaStream localStream = getLocalMediaStream();
+        mPeerConnection.addStream(localStream);
+    }
+
+    private MediaStream getLocalMediaStream() {
+        MediaStream localStream = mPeerConnectionFactory.createLocalMediaStream("local_stream");
+        localStream.addTrack(getLocalVideoTrack());
+        localStream.addTrack(getLocalAudioTrack());
+
+        return localStream;
+    }
+
+    private AudioTrack getLocalAudioTrack() {
         mAudioSource = mPeerConnectionFactory.createAudioSource(new MediaConstraints());
-
-
-        SurfaceTextureHelper helper = SurfaceTextureHelper.create(Thread.currentThread().getName(), mEglBase.getEglBaseContext());
-        mCameraVideoCapturer.initialize(helper, localSurfaceViewRenderer.getContext(), mVideoSource.getCapturerObserver());
-        mCameraVideoCapturer.startCapture(VIDEO_RESOLUTION_WIDTH, VIDEO_RESOLUTION_HEIGHT, FPS);
-
-        mVideoTrack = mPeerConnectionFactory.createVideoTrack("local_video_track", mVideoSource);
-//        mVideoTrack.setEnabled(true);
-        mVideoTrack.addSink(localSurfaceViewRenderer);
         mAudioTrack = mPeerConnectionFactory.createAudioTrack("local_audio_track", mAudioSource);
 
-        MediaStream localStream = mPeerConnectionFactory.createLocalMediaStream("local_stream");
-        localStream.addTrack(mVideoTrack);
-        localStream.addTrack(mAudioTrack);
-        mPeerConnection.addStream(localStream);
+        return mAudioTrack;
+    }
+
+    private VideoTrack getLocalVideoTrack() {
+        // create media component: mCameraVideoCapturer
+        CameraVideoCapturer cameraVideoCapturer = getCameraCapturer(applicationContext);
+
+        mVideoSource = mPeerConnectionFactory.createVideoSource(false);
+        SurfaceTextureHelper helper = SurfaceTextureHelper.create(Thread.currentThread().getName(), mEglBase.getEglBaseContext());
+        cameraVideoCapturer.initialize(helper, localSurfaceViewRenderer.getContext(), mVideoSource.getCapturerObserver());
+        cameraVideoCapturer.startCapture(VIDEO_RESOLUTION_WIDTH, VIDEO_RESOLUTION_HEIGHT, FPS);
+
+        mVideoTrack = mPeerConnectionFactory.createVideoTrack("local_video_track", mVideoSource);
+        mVideoTrack.addSink(localSurfaceViewRenderer);
+
+        return mVideoTrack;
     }
 
     private void initSurfaceViewRenderer(SurfaceViewRenderer surfaceViewRenderer) {
