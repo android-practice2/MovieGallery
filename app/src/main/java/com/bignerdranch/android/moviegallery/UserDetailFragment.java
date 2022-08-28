@@ -36,6 +36,7 @@ import com.bumptech.glide.Glide;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 import javax.inject.Inject;
 
@@ -58,6 +59,7 @@ public class UserDetailFragment extends Fragment {
 
     private FragmentUserDetailBinding mBinding;
     private int mUid = -1;
+    private CountDownLatch mCountDownLatch;
 
 
     public static Fragment newInstance(int uid) {
@@ -74,6 +76,7 @@ public class UserDetailFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View inflate = inflater.inflate(R.layout.fragment_user_detail, container, false);
         mBinding = FragmentUserDetailBinding.bind(inflate);
+        mCountDownLatch = new CountDownLatch(1);
 
         mUid = requireArguments().getInt(Constants.EXTRA_UID, -1);
 
@@ -147,6 +150,7 @@ public class UserDetailFragment extends Fragment {
             @Override
             public void onResponse(Call<UserGetDetailResponse> call, Response<UserGetDetailResponse> response) {
                 mUserDetail = response.body();
+                mCountDownLatch.countDown();
                 if (mUserDetail == null) {
                     Toast.makeText(UserDetailFragment.this.requireActivity(), "getDetailFromRemote exception", Toast.LENGTH_SHORT).show();
                     return;
@@ -171,7 +175,14 @@ public class UserDetailFragment extends Fragment {
 
             @Override
             public void onFailure(Call<UserGetDetailResponse> call, Throwable t) {
+                mCountDownLatch.countDown();
                 Log.e(TAG, "getDetailFromRemote fail", t);
+                requireActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(requireActivity(), "getDetailFromRemote fail", Toast.LENGTH_SHORT).show();
+                    }
+                });
             }
         });
     }
@@ -229,6 +240,11 @@ public class UserDetailFragment extends Fragment {
                     }
                     Log.i(TAG, "RequestTokenResponse: " + body);
 
+                    try {
+                        mCountDownLatch.await();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                     OkHttpUtil.uploadAppFileByMethod(finalFile, body.getPutUrl(), OkHttpUtil.Method.PUT, new okhttp3.Callback() {
                         @Override
                         public void onFailure(@NonNull okhttp3.Call call, @NonNull IOException e) {
@@ -238,7 +254,18 @@ public class UserDetailFragment extends Fragment {
 
                         @Override
                         public void onResponse(@NonNull okhttp3.Call call, @NonNull okhttp3.Response response) throws IOException {
-                            Log.i(TAG, "upload_avatar success, response:" + response);
+                            if (response.isSuccessful()) {
+                                Log.i(TAG, "upload_avatar success, response:" + response);
+
+                            } else {
+                                Log.e(TAG, "upload_avatar fail " + response.code());
+                                getActivity().runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Toast.makeText(getActivity(), "upload_avatar fail " + response.code(), Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                            }
                         }
                     });
 
