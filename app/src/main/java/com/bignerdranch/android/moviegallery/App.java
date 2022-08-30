@@ -35,7 +35,7 @@ public class App extends Application implements Configuration.Provider {
     }
 
     private void enableSocketLiveness() {
-        SocketWorkManager.getInstance().startSocketConnectivityWork(this);
+        LivenessRegister.getInstance().start(this);
     }
 
     private void enableJULToSLF4J() {

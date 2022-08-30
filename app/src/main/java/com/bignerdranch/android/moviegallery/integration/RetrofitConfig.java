@@ -1,4 +1,4 @@
-package com.bignerdranch.android.moviegallery.config;
+package com.bignerdranch.android.moviegallery.integration;
 
 import com.bignerdranch.android.moviegallery.BuildConfig;
 import com.bignerdranch.android.moviegallery.constants.Constants;

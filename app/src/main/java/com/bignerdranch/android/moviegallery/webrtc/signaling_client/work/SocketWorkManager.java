@@ -20,7 +20,7 @@ public class SocketWorkManager {
         return instance;
     }
 
-    public void startSocketConnectivityWork(Context context) {
+    public void start(Context context) {
         int uid = PreferenceManager.getDefaultSharedPreferences(context)
                 .getInt(Constants.PF_UID, -1);
         if (uid < 0) {

@@ -141,5 +141,18 @@ dependencies {
 
     implementation 'pub.devrel:easypermissions:3.0.0'
 
+//    mqtt
+    implementation 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.5'
+
+//    room
+    def room_version = "2.4.3"
+    implementation "androidx.room:room-runtime:$room_version"
+    annotationProcessor "androidx.room:room-compiler:$room_version"
+    // To use Kotlin annotation processing tool (kapt)
+    kapt "androidx.room:room-compiler:$room_version"
+    // optional - RxJava3 support for Room
+    implementation "androidx.room:room-rxjava3:$room_version"
+    // optional - Paging 3 Integration
+    implementation "androidx.room:room-paging:2.5.0-alpha03"
 }
 

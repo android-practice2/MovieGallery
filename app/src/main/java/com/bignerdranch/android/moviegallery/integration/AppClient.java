@@ -1,6 +1,7 @@
 package com.bignerdranch.android.moviegallery.integration;
 
 
+import com.bignerdranch.android.moviegallery.integration.model.ChatPostMsg;
 import com.bignerdranch.android.moviegallery.integration.model.FriendsAddRequest;
 import com.bignerdranch.android.moviegallery.integration.model.FriendsListRequest;
 import com.bignerdranch.android.moviegallery.integration.model.PageResponseWrapper;
@@ -24,6 +25,7 @@ import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.PATCH;
+import retrofit2.http.POST;
 import retrofit2.http.PUT;
 import retrofit2.http.Query;
 import retrofit2.http.QueryMap;
@@ -74,4 +76,9 @@ public interface AppClient {
 
     @GET("Friends/isFriend")
     Call<Boolean> isFriend(@Query("selfUid") Integer selfUid, @Query("uid") Integer uid);
+
+    @POST("chat/postMsg")
+    Call<Void> postMsg(@Body ChatPostMsg request);
+
+
 }
