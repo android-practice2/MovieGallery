@@ -37,8 +37,9 @@ public class MyMqttCallback implements MqttCallbackExtended {
     @Override
     public void messageArrived(String topic, MqttMessage mqttMsg) throws Exception {
         String text = new String(mqttMsg.getPayload(), StandardCharsets.UTF_8);
+        Log.i(getClass().getSimpleName(), "messageArrived,topic:" + topic + ",message:" + text);
         ChatPostMsg msg = JsonUtil.fromJsonStr(text, ChatPostMsg.class);
-        Message entity = new Message(msg.getUid(), Message.TYPE_PEER, msg.getContent());
+        Message entity = new Message(msg.getPeerUid(), Message.TYPE_PEER, msg.getContent());
         mMessageRepository.insertAll(entity)
                 .subscribe()
         ;
