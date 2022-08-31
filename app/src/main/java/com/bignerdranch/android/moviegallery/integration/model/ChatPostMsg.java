@@ -7,6 +7,14 @@ public class ChatPostMsg {
 
     private String content;
 
+    public ChatPostMsg() {
+    }
+
+    public ChatPostMsg(int uid, int peerUid, String content) {
+        this.uid = uid;
+        this.peerUid = peerUid;
+        this.content = content;
+    }
 
     public int getUid() {
         return uid;

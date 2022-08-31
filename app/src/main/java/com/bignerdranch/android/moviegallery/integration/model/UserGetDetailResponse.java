@@ -43,4 +43,13 @@ public class UserGetDetailResponse {
         this.phone_number = phone_number;
     }
 
+    @Override
+    public String toString() {
+        return "{" +
+                "uid=" + uid +
+                ", nickname='" + nickname + '\'' +
+                ", avatar='" + avatar + '\'' +
+                ", phone_number='" + phone_number + '\'' +
+                '}';
+    }
 }

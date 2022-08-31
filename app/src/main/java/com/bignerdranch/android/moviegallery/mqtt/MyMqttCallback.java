@@ -4,6 +4,7 @@ import android.util.Log;
 
 import com.bignerdranch.android.moviegallery.chat.repository.MessageRepository;
 import com.bignerdranch.android.moviegallery.chat.room.entity.Message;
+import com.bignerdranch.android.moviegallery.integration.model.ChatPostMsg;
 import com.bignerdranch.android.moviegallery.util.JsonUtil;
 
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
@@ -34,10 +35,11 @@ public class MyMqttCallback implements MqttCallbackExtended {
     }
 
     @Override
-    public void messageArrived(String topic, MqttMessage message) throws Exception {
-        String text = new String(message.getPayload(), StandardCharsets.UTF_8);
-        Message msg = JsonUtil.fromJsonStr(text, Message.class);
-        mMessageRepository.insertAll(msg)
+    public void messageArrived(String topic, MqttMessage mqttMsg) throws Exception {
+        String text = new String(mqttMsg.getPayload(), StandardCharsets.UTF_8);
+        ChatPostMsg msg = JsonUtil.fromJsonStr(text, ChatPostMsg.class);
+        Message entity = new Message(msg.getUid(), Message.TYPE_PEER, msg.getContent());
+        mMessageRepository.insertAll(entity)
                 .subscribe()
         ;
     }

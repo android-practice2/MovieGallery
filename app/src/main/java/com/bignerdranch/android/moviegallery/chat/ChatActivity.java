@@ -4,12 +4,16 @@ import static autodispose2.AutoDispose.autoDisposable;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -26,15 +30,16 @@ import com.bignerdranch.android.moviegallery.R;
 import com.bignerdranch.android.moviegallery.chat.repository.CommunicationRepository;
 import com.bignerdranch.android.moviegallery.chat.repository.MessageRepository;
 import com.bignerdranch.android.moviegallery.chat.repository.PeerRepository;
+import com.bignerdranch.android.moviegallery.chat.room.entity.Communication;
 import com.bignerdranch.android.moviegallery.chat.room.entity.Message;
 import com.bignerdranch.android.moviegallery.chat.room.entity.Peer;
 import com.bignerdranch.android.moviegallery.constants.Constants;
 import com.bignerdranch.android.moviegallery.databinding.ActivityChatBinding;
 import com.bignerdranch.android.moviegallery.databinding.ViewHolderMessagePeerBinding;
+import com.bignerdranch.android.moviegallery.integration.AppClient;
+import com.bignerdranch.android.moviegallery.integration.model.ChatPostMsg;
 import com.bignerdranch.android.moviegallery.mqtt.AppMqttClient;
 import com.bumptech.glide.Glide;
-
-import org.eclipse.paho.client.mqttv3.MqttClient;
 
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
@@ -43,10 +48,11 @@ import javax.inject.Inject;
 
 import autodispose2.androidx.lifecycle.AndroidLifecycleScopeProvider;
 import dagger.hilt.android.AndroidEntryPoint;
-import io.reactivex.rxjava3.core.MaybeObserver;
-import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.functions.Consumer;
 import io.reactivex.rxjava3.schedulers.Schedulers;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 @AndroidEntryPoint
 public class ChatActivity extends BaseActivity {
@@ -68,6 +74,8 @@ public class ChatActivity extends BaseActivity {
     MessageRepository mMessageRepository;
     @Inject
     CommunicationRepository mCommunicationRepository;
+    @Inject
+    AppClient mAppClient;
 
     private CountDownLatch mLatch;
 
@@ -86,12 +94,12 @@ public class ChatActivity extends BaseActivity {
         View root = mBinding.getRoot();
         setContentView(root);
         mPeerUid = getIntent().getIntExtra(Constants.EXTRA_PEER_UID, -1);
-        mCommunicationRepository.clearUnread(mPeerUid)
-                .to(autoDisposable(AndroidLifecycleScopeProvider.from(getLifecycle())))
-                .subscribe();
+
+        upsertCommunicationList();
+
 
         mLatch = new CountDownLatch(2);
-        mPeerRepository.selectById(mPeerUid)
+        mPeerRepository.fetchById(mPeerUid)
                 .subscribeOn(Schedulers.io())
                 .to(autoDisposable(AndroidLifecycleScopeProvider.from(getLifecycle())))
                 .subscribe(new Consumer<Peer>() {
@@ -101,7 +109,8 @@ public class ChatActivity extends BaseActivity {
                         mLatch.countDown();
                     }
                 });
-        mPeerRepository.selectById(mUid)
+
+        mPeerRepository.fetchById(mUid)
                 .subscribeOn(Schedulers.io())
                 .to(autoDisposable(AndroidLifecycleScopeProvider.from(getLifecycle())))
                 .subscribe(new Consumer<Peer>() {
@@ -123,15 +132,8 @@ public class ChatActivity extends BaseActivity {
             @Override
             public void onClick(View v) {
                 flipMenuLayoutVisibility();
-            }
-        });
-
-        mBinding.menuLayout.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                if (!hasFocus) {
-                    flipMenuLayoutVisibility();
-                }
+                InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                inputMethodManager.hideSoftInputFromWindow(v.getWindowToken(), 0);
             }
         });
 
@@ -146,7 +148,35 @@ public class ChatActivity extends BaseActivity {
             }
         });
 
+    }
 
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        if (ev.getAction() == MotionEvent.ACTION_DOWN) {
+            final View v = mBinding.recyclerView;
+            Rect rect = new Rect();
+            v.getGlobalVisibleRect(rect);
+            if (rect.contains((int) ev.getRawX(), (int) ev.getRawY())) {
+                Log.d(TAG, "clear_editText_focus");
+                InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                inputMethodManager.hideSoftInputFromWindow(v.getWindowToken(), 0);
+
+                goneMenuLayout();
+            }
+        }
+
+        return super.dispatchTouchEvent(ev);
+    }
+
+
+    private void upsertCommunicationList() {
+        Communication communication = new Communication();
+        communication.id = mPeerUid;
+        communication.unread = 0;
+        mCommunicationRepository.insertAll(communication)
+                .to(autoDisposable(AndroidLifecycleScopeProvider.from(getLifecycle())))
+                .subscribe()
+        ;
     }
 
     private void setupIM() {
@@ -164,7 +194,7 @@ public class ChatActivity extends BaseActivity {
             @Override
             public void afterTextChanged(Editable s) {
                 if (!s.toString().isEmpty()) {
-                    flipSendBtnVisibility();
+                    setSenBtnVisible();
                 }
 
             }
@@ -175,39 +205,33 @@ public class ChatActivity extends BaseActivity {
             public void onClick(View v) {
                 final String text = mBinding.textInput.getText().toString();
                 mBinding.textInput.setText("");
-                flipSendBtnVisibility();
+                setSendBtnGone();
                 Message message = new Message(
-                        mPeerUid, Message.TYPE_PEER, text
+                        mUid, Message.TYPE_ME, text
                 );
+                mMessageRepository.insertAll(message).subscribe();
 
-                mAppMqttClient.publish(mPeerUid, message)
-                        .subscribe(new MaybeObserver<Void>() {
-                            @Override
-                            public void onSubscribe(@io.reactivex.rxjava3.annotations.NonNull Disposable d) {
+                ChatPostMsg msg = new ChatPostMsg(mUid, mPeerUid, text);
+                mAppClient.postMsg(msg).enqueue(new Callback<Void>() {
+                    @Override
+                    public void onResponse(Call<Void> call, Response<Void> response) {
+                    }
 
-                            }
+                    @Override
+                    public void onFailure(Call<Void> call, Throwable t) {
+                        Log.e(TAG, "publish_msg error", t);
+                        Toast.makeText(ChatActivity.this, "publish_msg error", Toast.LENGTH_SHORT).show();
+                    }
+                });
 
-                            @Override
-                            public void onSuccess(@io.reactivex.rxjava3.annotations.NonNull Void unused) {
-
-                            }
-
-                            @Override
-                            public void onError(@io.reactivex.rxjava3.annotations.NonNull Throwable e) {
-                                Toast.makeText(ChatActivity.this, "publish_msg error", Toast.LENGTH_SHORT).show();
-                            }
-
-                            @Override
-                            public void onComplete() {
-
-                                mMessageRepository.insertAll(message).subscribe();
-
-
-                            }
-                        })
-                ;
             }
         });
+
+    }
+
+
+    private void goneMenuLayout() {
+        mBinding.menuLayout.setVisibility(View.GONE);
 
     }
 
@@ -221,34 +245,44 @@ public class ChatActivity extends BaseActivity {
         }
     }
 
+
     private void setupRecyclerView() {
-        mBinding.recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        final MessageAdapter adapter = new MessageAdapter();
-        mBinding.recyclerView.setAdapter(adapter);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        layoutManager.setStackFromEnd(true);
+        mBinding.recyclerView.setLayoutManager(layoutManager);
+        MessageAdapter mAdapter = new MessageAdapter();
+        mBinding.recyclerView.setAdapter(mAdapter);
 
         mViewModel.getFlowable()
                 .subscribeOn(Schedulers.io())
                 .to(autoDisposable(AndroidLifecycleScopeProvider.from(getLifecycle())))
                 .subscribe(new Consumer<PagingData<Message>>() {
                     @Override
-                    public void accept(PagingData<Message> messagePagingData) throws Throwable {
+                    public void accept(PagingData<Message> pagingData) throws Throwable {
                         mLatch.await();
-                        adapter.submitData(getLifecycle(), messagePagingData);
+                        mAdapter.submitData(getLifecycle(), pagingData);
 
                     }
                 });
+        mAdapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
+            @Override
+            public void onItemRangeInserted(int positionStart, int itemCount) {
+                super.onItemRangeInserted(positionStart, itemCount);
+                mBinding.recyclerView.scrollToPosition(mBinding.recyclerView.getAdapter().getItemCount() - 1);
+            }
+        });
     }
 
-    private void flipSendBtnVisibility() {
-        if (mBinding.menuBtn.getVisibility() == View.VISIBLE) {
-            mBinding.menuBtn.setVisibility(View.GONE);
-            mBinding.sendBtn.setVisibility(View.VISIBLE);
-        } else {
-            mBinding.menuBtn.setVisibility(View.VISIBLE);
-            mBinding.sendBtn.setVisibility(View.GONE);
-        }
-
+    private void setSenBtnVisible() {
+        mBinding.menuBtn.setVisibility(View.GONE);
+        mBinding.sendBtn.setVisibility(View.VISIBLE);
     }
+
+    private void setSendBtnGone() {
+        mBinding.menuBtn.setVisibility(View.VISIBLE);
+        mBinding.sendBtn.setVisibility(View.GONE);
+    }
+
 
     public class MessageAdapter extends PagingDataAdapter<Message, MessageViewHolder> {
         public MessageAdapter() {
@@ -278,16 +312,26 @@ public class ChatActivity extends BaseActivity {
                 return messageViewHolder;
             }
 
+
         }
 
         @Override
         public void onBindViewHolder(@NonNull MessageViewHolder holder, int position) {
-            holder.bind(getItem(position));
+
+            final Message item = getItem(position);
+            if (item == null) {
+                return;
+            }
+            holder.bind(item);
         }
 
         @Override
         public int getItemViewType(int position) {
             final Message item = getItem(position);
+            if (item == null) {
+                Log.i(TAG, "item_is_null position:" + position);
+                return Message.TYPE_PEER;
+            }
             return item.type;
         }
     }

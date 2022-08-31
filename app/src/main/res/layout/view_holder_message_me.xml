@@ -26,10 +26,9 @@
         android:padding="2dp"
         android:textSize="18sp"
         android:background="@android:color/holo_green_light"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toStartOf="@id/avatar"
         app:layout_constraintTop_toTopOf="@+id/avatar"
-        tools:text="hello world hello world hello world hello world world hello world world hello world" />
+        tools:text="hello world " />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

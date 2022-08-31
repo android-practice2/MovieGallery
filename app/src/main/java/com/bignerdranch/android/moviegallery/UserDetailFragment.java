@@ -48,7 +48,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 @AndroidEntryPoint
-public class UserDetailFragment extends Fragment {
+public class UserDetailFragment extends BaseFragment {
     private static final String TAG = "PersonDetailActivity";
 
     @Inject
@@ -58,18 +58,9 @@ public class UserDetailFragment extends Fragment {
     private Uri mUriForFile;
 
     private FragmentUserDetailBinding mBinding;
-    private int mUid = -1;
     private CountDownLatch mCountDownLatch;
 
 
-    public static Fragment newInstance(int uid) {
-        UserDetailFragment fragment = new UserDetailFragment();
-        Bundle args = new Bundle();
-        args.putInt(Constants.EXTRA_UID, uid);
-        fragment.setArguments(args);
-
-        return fragment;
-    }
 
     @Nullable
     @Override
@@ -77,8 +68,6 @@ public class UserDetailFragment extends Fragment {
         View inflate = inflater.inflate(R.layout.fragment_user_detail, container, false);
         mBinding = FragmentUserDetailBinding.bind(inflate);
         mCountDownLatch = new CountDownLatch(1);
-
-        mUid = requireArguments().getInt(Constants.EXTRA_UID, -1);
 
         queryUserDetail();
 
@@ -190,7 +179,7 @@ public class UserDetailFragment extends Fragment {
 
     private Uri buildUriForFile() {
         if (mFile == null) {
-            mFile = new File(requireActivity().getFilesDir(), "IMG_" + mUserDetail.getUid() + ".jpg");
+            mFile = new File(requireActivity().getFilesDir(), "IMG_" + mUid + ".jpg");
         }
         if (mUriForFile == null) {
             mUriForFile = FileProvider.getUriForFile(UserDetailFragment.this.requireActivity(),

@@ -28,7 +28,7 @@ public class PeerRepository {
         mAppClient = appClient;
     }
 
-    public Single<Peer> selectById(int uid) {
+    public Single<Peer> fetchById(int uid) {
         return peerDao.selectById(uid)
                 .subscribeOn(Schedulers.io())
                 .onErrorResumeNext(new Function<Throwable, SingleSource<? extends Peer>>() {

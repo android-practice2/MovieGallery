@@ -15,6 +15,7 @@ import com.bignerdranch.android.moviegallery.chat.room.projection.CommunicationD
 import java.util.List;
 
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 
 @Dao
@@ -32,5 +33,5 @@ public interface CommunicationDao {
     Completable update(Communication update);
 
     @Query("select * from Communication where id=:id")
-    Single<Communication> selectById(int id);
+    Maybe<Communication> selectById(int id);
 }

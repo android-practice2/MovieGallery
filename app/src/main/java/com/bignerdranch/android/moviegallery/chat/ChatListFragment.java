@@ -100,13 +100,19 @@ public class ChatListFragment extends BaseFragment {
         }
 
         public void bind(CommunicationDetail item) {
-            mBinding.uid.setText(item.id);
+            mBinding.uid.setText(String.valueOf(item.id));
             Glide.with(requireContext())
                     .load(item.avatar)
                     .into(mBinding.avatar);
 
-            mBinding.nickname.setText(item.nickname);
-            mBinding.unread.setText(item.unread);
+            mBinding.nickname.setText(String.valueOf(item.nickname));
+            if (item.unread > 0) {
+                mBinding.unread.setText(String.valueOf(item.unread));
+                mBinding.unread.setVisibility(View.VISIBLE);
+
+            } else {
+                mBinding.unread.setVisibility(View.GONE);
+            }
             mBinding.getRoot().setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {

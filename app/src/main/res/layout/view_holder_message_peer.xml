@@ -20,15 +20,15 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginEnd="40dp"
+        android:background="@color/white"
         android:gravity="start|center_vertical"
         android:minHeight="40dp"
         android:maxWidth="300dp"
         android:textSize="18sp"
         android:padding="2dp"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/avatar"
         app:layout_constraintTop_toTopOf="@+id/avatar"
-        tools:text="hello world hello world hello world hello world world hello world world hello world" />
+        tools:text="hello world hello" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
