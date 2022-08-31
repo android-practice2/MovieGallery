@@ -250,8 +250,8 @@ public class ChatActivity extends BaseActivity {
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         layoutManager.setStackFromEnd(true);
         mBinding.recyclerView.setLayoutManager(layoutManager);
-        MessageAdapter mAdapter = new MessageAdapter();
-        mBinding.recyclerView.setAdapter(mAdapter);
+        MessageAdapter adapter = new MessageAdapter();
+        mBinding.recyclerView.setAdapter(adapter);
 
         mViewModel.getFlowable()
                 .subscribeOn(Schedulers.io())
@@ -260,15 +260,28 @@ public class ChatActivity extends BaseActivity {
                     @Override
                     public void accept(PagingData<Message> pagingData) throws Throwable {
                         mLatch.await();
-                        mAdapter.submitData(getLifecycle(), pagingData);
+                        adapter.submitData(getLifecycle(), pagingData);
 
                     }
                 });
-        mAdapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
+        adapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
             @Override
             public void onItemRangeInserted(int positionStart, int itemCount) {
                 super.onItemRangeInserted(positionStart, itemCount);
-                mBinding.recyclerView.scrollToPosition(mBinding.recyclerView.getAdapter().getItemCount() - 1);
+                final int position = positionStart + itemCount - 1;
+                final Message item = adapter.findItem(position);
+
+                Log.i(TAG, "onItemRangeInserted"
+                        + ",positionStart:" + positionStart
+                        + ",itemCount:" + itemCount
+                );
+                if (item == null) {
+                    Log.i(TAG, "item_is_null position:" + position);
+                    return;
+                }
+                if (item.type == Message.TYPE_ME) {
+                    mBinding.recyclerView.scrollToPosition(mBinding.recyclerView.getAdapter().getItemCount() - 1);
+                }
             }
         });
     }
@@ -297,6 +310,10 @@ public class ChatActivity extends BaseActivity {
                     return oldItem.equals(newItem);
                 }
             });
+        }
+
+        public Message findItem(int position) {
+            return super.getItem(position);
         }
 
         @NonNull
