@@ -12,6 +12,11 @@
         android:title="nearby" />
 
     <item
+        android:id="@+id/chatListFragment"
+        android:icon="@drawable/ic_baseline_chat_bubble_outline_24"
+        android:title="Chats" />
+
+    <item
         android:id="@+id/friendsFragment"
         android:icon="@drawable/ic_people"
         android:title="friends" />

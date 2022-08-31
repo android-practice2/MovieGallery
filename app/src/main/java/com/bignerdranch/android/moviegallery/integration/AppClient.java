@@ -39,8 +39,6 @@ public interface AppClient {
     @GET("User/getDetail")
     Call<UserGetDetailResponse> getDetail(@Query("uid") Integer uid);
 
-    @GET("User/getDetailV2")
-    Call<UserGetDetailV2Response> getDetailV2(@Query("selfUid") Integer selfUid, @Query("uid") Integer uid);
 
     @PUT("UserGeoLocation/addLocation")
     Call<Boolean> addLocation(@Body UserGeoLocationAddLocationRequest request);

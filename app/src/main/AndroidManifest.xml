@@ -42,6 +42,7 @@
         <activity android:name=".chat.VideoActivity" />
         <activity android:name=".chat.ChatActivity" />
         <activity android:name=".chat.DecideActivity" />
+        <activity android:name=".chat.ChatListFragment" />
 
         <provider
             android:name="androidx.startup.InitializationProvider"

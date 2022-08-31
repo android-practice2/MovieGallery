@@ -18,6 +18,12 @@
         tools:layout="@layout/fragment_nearby" />
 
     <fragment
+        android:id="@+id/chatListFragment"
+        android:name="com.bignerdranch.android.moviegallery.chat.ChatListFragment"
+        android:label="Chats"
+        tools:layout="@layout/fragment_chat_list" />
+
+    <fragment
         android:id="@+id/friendsFragment"
         android:name="com.bignerdranch.android.moviegallery.friends.FriendsFragment"
         android:label="Friends"

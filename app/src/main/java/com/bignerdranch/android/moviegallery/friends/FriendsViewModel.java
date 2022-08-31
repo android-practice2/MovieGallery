@@ -28,6 +28,7 @@ import autodispose2.androidx.lifecycle.AndroidLifecycleScopeProvider;
 import dagger.hilt.android.lifecycle.HiltViewModel;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.functions.Consumer;
 import io.reactivex.rxjava3.functions.Function;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import kotlin.jvm.functions.Function0;
@@ -66,8 +67,11 @@ public class FriendsViewModel extends ViewModel {
         this.uid = uid;
         mFlowable
                 .to(autoDisposable(AndroidLifecycleScopeProvider.from(lifecycle)))
-                .subscribe(userPagingData -> {
-                    adapter.submitData(lifecycle, userPagingData);
+                .subscribe(new Consumer<PagingData<User>>() {
+                    @Override
+                    public void accept(PagingData<User> userPagingData) throws Throwable {
+                        adapter.submitData(lifecycle, userPagingData);
+                    }
                 });
 
 

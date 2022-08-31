@@ -13,8 +13,17 @@ import java.util.Map;
 public class JsonUtil {
     private static final Gson gson = new Gson();
 
+
     public static <T> T fromJsonObject(JSONObject jsonObject, Class<T> clzz) {
         return gson.fromJson(jsonObject.toString(), clzz);
+    }
+
+    public static String toJsonStr(Object obj) {
+        return gson.toJson(obj);
+    }
+
+    public static <T> T fromJsonStr(String jsonStr, Class<T> clzz) {
+        return gson.fromJson(jsonStr, clzz);
     }
 
     public static JSONObject toJsonObject(Object obj) {
