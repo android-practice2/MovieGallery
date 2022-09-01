@@ -25,6 +25,8 @@ import androidx.annotation.Nullable;
 import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
 
+import com.bignerdranch.android.moviegallery.chat.repository.PeerRepository;
+import com.bignerdranch.android.moviegallery.chat.room.entity.Peer;
 import com.bignerdranch.android.moviegallery.constants.Constants;
 import com.bignerdranch.android.moviegallery.databinding.FragmentUserDetailBinding;
 import com.bignerdranch.android.moviegallery.integration.AppClient;
@@ -44,6 +46,7 @@ import javax.inject.Inject;
 
 import dagger.hilt.android.AndroidEntryPoint;
 import id.zelory.compressor.Compressor;
+import io.reactivex.rxjava3.functions.Consumer;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -62,7 +65,12 @@ public class UserDetailFragment extends BaseFragment {
     private FragmentUserDetailBinding mBinding;
     private CountDownLatch mCountDownLatch;
     private final Handler mHandler = new Handler();
+    private int mSubjUid;
+    @Inject
+    private PeerRepository mPeerRepository;
 
+    public UserDetailFragment() {
+    }
 
     @Nullable
     @Override
@@ -70,6 +78,7 @@ public class UserDetailFragment extends BaseFragment {
         View inflate = inflater.inflate(R.layout.fragment_user_detail, container, false);
         mBinding = FragmentUserDetailBinding.bind(inflate);
         mCountDownLatch = new CountDownLatch(1);
+        mSubjUid = getArguments().getInt(Constants.EXTRA_UID, -1);
 
         queryUserDetail();
 
@@ -138,7 +147,7 @@ public class UserDetailFragment extends BaseFragment {
     }
 
     private void queryUserDetail() {
-        Call<UserGetDetailResponse> call = mAppClient.getDetail(mUid);
+        Call<UserGetDetailResponse> call = mAppClient.getDetail(mSubjUid);
         call.enqueue(new Callback<UserGetDetailResponse>() {
             @Override
             public void onResponse(Call<UserGetDetailResponse> call, Response<UserGetDetailResponse> response) {
@@ -166,6 +175,26 @@ public class UserDetailFragment extends BaseFragment {
                 mBinding.phoneNumberText.setText(mUserDetail.getPhone_number());
                 mBinding.uidText.setText(mUserDetail.getUid().toString());
 
+                Peer peer = new Peer(
+                        mUserDetail.getUid(),
+                        mUserDetail.getNickname(),
+                        mUserDetail.getAvatar()
+                );
+                mPeerRepository.updateIfPresent(peer)
+                        .doOnError(new Consumer<Throwable>() {
+                            @Override
+                            public void accept(Throwable throwable) throws Throwable {
+                                mHandler.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Log.e(TAG, "update_local_room_peer error", throwable);
+                                        Toast.makeText(getContext(), "update_local_room_peer error", Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                            }
+                        })
+                        .subscribe();
+
             }
 
             @Override
@@ -175,7 +204,7 @@ public class UserDetailFragment extends BaseFragment {
                 mHandler.post(new Runnable() {
                     @Override
                     public void run() {
-                        Toast.makeText(requireActivity(), "getDetailFromRemote fail", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "getDetailFromRemote fail", Toast.LENGTH_SHORT).show();
 
                     }
                 });

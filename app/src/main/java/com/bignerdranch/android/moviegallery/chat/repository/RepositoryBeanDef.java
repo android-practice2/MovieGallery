@@ -1,5 +1,6 @@
 package com.bignerdranch.android.moviegallery.chat.repository;
 
+import com.bignerdranch.android.moviegallery.chat.room.AppDatabase;
 import com.bignerdranch.android.moviegallery.chat.room.CommunicationDao;
 import com.bignerdranch.android.moviegallery.chat.room.MessageDao;
 import com.bignerdranch.android.moviegallery.chat.room.PeerDao;
@@ -24,8 +25,8 @@ public class RepositoryBeanDef {
 
     @Provides
     @Singleton
-    public static PeerRepository sPeerRepository(PeerDao dao, AppClient appClient) {
-        return new PeerRepository(dao, appClient);
+    public static PeerRepository sPeerRepository(PeerDao dao, AppClient appClient, AppDatabase appDatabase) {
+        return new PeerRepository(dao, appClient, appDatabase);
     }
 
     @Provides
