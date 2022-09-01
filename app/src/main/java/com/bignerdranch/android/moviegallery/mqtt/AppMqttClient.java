@@ -2,25 +2,19 @@ package com.bignerdranch.android.moviegallery.mqtt;
 
 import android.util.Log;
 
-import androidx.work.ListenableWorker;
-
 import com.bignerdranch.android.moviegallery.chat.room.entity.Message;
 import com.bignerdranch.android.moviegallery.util.JsonUtil;
-import com.bignerdranch.android.moviegallery.util.ThreadPool;
 
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.Future;
 
 import javax.inject.Inject;
 
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.MaybeSource;
-import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.core.ObservableSource;
 import io.reactivex.rxjava3.functions.Supplier;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
@@ -71,7 +65,11 @@ public class AppMqttClient {
 //                options.setUserName("username");
 //                options.setPassword("password".toCharArray());
         options.setAutomaticReconnect(true);
-        options.setMaxReconnectDelay(128000);
+        options.setMaxReconnectDelay(5000);
+        options.setKeepAliveInterval(5);
+        options.setConnectionTimeout(3);
+        options.setCleanSession(false);
+
 
         try {
             mMqttClient.connect(options);
