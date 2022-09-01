@@ -32,6 +32,7 @@ import com.bignerdranch.android.moviegallery.integration.model.UserGetDetailResp
 import com.bignerdranch.android.moviegallery.integration.model.UserUpdateAvatarRequest;
 import com.bignerdranch.android.moviegallery.util.OkHttpUtil;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 
 import java.io.File;
 import java.io.IOException;
@@ -111,12 +112,14 @@ public class UserDetailFragment extends BaseFragment {
                 ImageView image_view = dialog.findViewById(R.id.image_view);
                 String avatar = mUserDetail.getAvatar();
                 if (avatar != null) {
-                    Glide.with(requireActivity().getApplicationContext())
+                    Glide.with(requireContext())
                             .load(avatar)
+                            .diskCacheStrategy(DiskCacheStrategy.ALL)
                             .into(image_view);
                 } else {
-                    Glide.with(requireActivity().getApplicationContext())
+                    Glide.with(requireContext())
                             .load(R.drawable.ic_person)
+                            .diskCacheStrategy(DiskCacheStrategy.ALL)
                             .into(image_view);
                 }
                 Button close_btn = dialog.findViewById(R.id.close_btn);
@@ -148,12 +151,14 @@ public class UserDetailFragment extends BaseFragment {
                 Log.i(TAG, "user detail: " + mUserDetail);
 
                 if (mUserDetail.getAvatar() != null) {
-                    Glide.with(requireActivity().getApplicationContext())
+                    Glide.with(requireContext())
                             .load(mUserDetail.getAvatar())
+                            .diskCacheStrategy(DiskCacheStrategy.ALL)
                             .into(mBinding.avatarImage);
                 } else {
-                    Glide.with(requireActivity().getApplicationContext())
+                    Glide.with(requireContext())
                             .load(R.drawable.ic_person)
+                            .diskCacheStrategy(DiskCacheStrategy.ALL)
                             .into(mBinding.avatarImage);
                 }
                 mBinding.nicknameText.setText(mUserDetail.getNickname());
@@ -203,8 +208,9 @@ public class UserDetailFragment extends BaseFragment {
             //show and scale image
 //            Bitmap scaledBitmap = PictureUtils.getScaledBitmap(mFile.getPath(), mAvatar_image.getMeasuredWidth(), mAvatar_image.getMeasuredHeight());
 //            mAvatar_image.setImageBitmap(scaledBitmap);
-            Glide.with(requireActivity().getApplicationContext())
+            Glide.with(requireContext())
                     .load(uri)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .into(mBinding.avatarImage);
 
             //compress image

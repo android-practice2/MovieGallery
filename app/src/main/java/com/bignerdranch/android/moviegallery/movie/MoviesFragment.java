@@ -31,6 +31,7 @@ import com.bignerdranch.android.moviegallery.databinding.FragmentMoviesBinding;
 import com.bignerdranch.android.moviegallery.integration.model.Movie;
 import com.bignerdranch.android.moviegallery.util.MovieDiff;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 
 import autodispose2.AutoDispose;
 import autodispose2.androidx.lifecycle.AndroidLifecycleScopeProvider;
@@ -238,8 +239,10 @@ public class MoviesFragment extends BaseFragment {
             if (item == null) {
                 return;
             }
-            Glide.with(getActivity()).load("https://image.tmdb.org/t/p/w500" + item.getPoster_path())
+            Glide.with(requireContext())
+                    .load("https://image.tmdb.org/t/p/w500" + item.getPoster_path())
 //                    .placeholder(R.drawable.ic_image_placeholder)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .into(mMovieBinding.posterImage);
 
             mMovieBinding.movieTitle.setText(item.getTitle());

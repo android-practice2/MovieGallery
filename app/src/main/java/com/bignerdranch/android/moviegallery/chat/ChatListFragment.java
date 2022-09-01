@@ -21,6 +21,7 @@ import com.bignerdranch.android.moviegallery.chat.room.projection.CommunicationD
 import com.bignerdranch.android.moviegallery.databinding.FragmentChatListBinding;
 import com.bignerdranch.android.moviegallery.databinding.ViewHolderChatListItemBinding;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 
 import java.util.List;
 
@@ -103,6 +104,7 @@ public class ChatListFragment extends BaseFragment {
             mBinding.uid.setText(String.valueOf(item.id));
             Glide.with(requireContext())
                     .load(item.avatar)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .into(mBinding.avatar);
 
             mBinding.nickname.setText(String.valueOf(item.nickname));

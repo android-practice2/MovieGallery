@@ -40,6 +40,7 @@ import com.bignerdranch.android.moviegallery.integration.AppClient;
 import com.bignerdranch.android.moviegallery.integration.model.ChatPostMsg;
 import com.bignerdranch.android.moviegallery.mqtt.AppMqttClient;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
@@ -365,13 +366,15 @@ public class ChatActivity extends BaseActivity {
 
         public void bind(Message message) {
             if (message.type == Message.TYPE_PEER) {
-                Glide.with(getApplicationContext())
+                Glide.with(ChatActivity.this)
                         .load(mPeer.avatar)
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
                         .into(mBinding.avatar);
 
             } else {
-                Glide.with(getApplicationContext())
+                Glide.with(ChatActivity.this)
                         .load(mMe.avatar)
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
                         .into(mBinding.avatar);
             }
 

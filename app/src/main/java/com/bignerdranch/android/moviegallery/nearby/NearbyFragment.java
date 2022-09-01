@@ -39,6 +39,7 @@ import com.bignerdranch.android.moviegallery.integration.AppClient;
 import com.bignerdranch.android.moviegallery.integration.model.UserGeoLocationAddLocationRequest;
 import com.bignerdranch.android.moviegallery.integration.model.UserLocationProjection;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 
 import java.util.List;
 
@@ -304,12 +305,14 @@ public class NearbyFragment extends BaseFragment {
 
             String avatar = item.getAvatar();
             if (avatar == null) {
-                Glide.with(getActivity().getApplicationContext())
+                Glide.with(requireContext())
                         .load(R.drawable.ic_person)
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
                         .into(mNearbyBinding.avatarImage);
             }else{
-                Glide.with(getActivity().getApplicationContext())
+                Glide.with(requireContext())
                         .load(avatar)
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
                         .into(mNearbyBinding.avatarImage);
 
             }

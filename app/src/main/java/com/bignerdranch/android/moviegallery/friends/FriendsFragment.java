@@ -28,6 +28,7 @@ import com.bignerdranch.android.moviegallery.integration.AppClient;
 import com.bignerdranch.android.moviegallery.integration.model.User;
 import com.bignerdranch.android.moviegallery.util.UserDiff;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 
 import javax.inject.Inject;
 
@@ -121,13 +122,15 @@ public class FriendsFragment extends BaseFragment {
 
         public void bind(User item) {
             if (item.getAvatar() != null) {
-                Glide.with(getActivity().getApplicationContext())
+                Glide.with(requireContext())
                         .load(item.getAvatar())
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
                         .into(mBind.avatarImage);
 
             } else {
-                Glide.with(getActivity().getApplicationContext())
+                Glide.with(requireContext())
                         .load(R.drawable.ic_person)
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
                         .into(mBind.avatarImage);
             }
 
