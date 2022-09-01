@@ -8,6 +8,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -60,7 +61,7 @@ public class UserDetailFragment extends BaseFragment {
 
     private FragmentUserDetailBinding mBinding;
     private CountDownLatch mCountDownLatch;
-
+    private final Handler mHandler = new Handler();
 
 
     @Nullable
@@ -171,12 +172,20 @@ public class UserDetailFragment extends BaseFragment {
             public void onFailure(Call<UserGetDetailResponse> call, Throwable t) {
                 mCountDownLatch.countDown();
                 Log.e(TAG, "getDetailFromRemote fail", t);
-                requireActivity().runOnUiThread(new Runnable() {
+                mHandler.post(new Runnable() {
                     @Override
                     public void run() {
                         Toast.makeText(requireActivity(), "getDetailFromRemote fail", Toast.LENGTH_SHORT).show();
+
                     }
                 });
+
+//                requireActivity().runOnUiThread(new Runnable() { //requireActivity() may throw IllegalStateException if inner activity is null
+//                    @Override
+//                    public void run() {
+//                        Toast.makeText(requireActivity(), "getDetailFromRemote fail", Toast.LENGTH_SHORT).show();
+//                    }
+//                });
             }
         });
     }
