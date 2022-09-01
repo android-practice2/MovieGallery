@@ -25,4 +25,13 @@ public class Peer {
         this.nickname = nickname;
         this.avatar = avatar;
     }
+
+    @Override
+    public String toString() {
+        return "Peer{" +
+                "uid=" + uid +
+                ", nickname='" + nickname + '\'' +
+                ", avatar='" + avatar + '\'' +
+                '}';
+    }
 }

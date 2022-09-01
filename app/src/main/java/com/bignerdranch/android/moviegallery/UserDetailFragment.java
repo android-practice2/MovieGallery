@@ -67,7 +67,7 @@ public class UserDetailFragment extends BaseFragment {
     private final Handler mHandler = new Handler();
     private int mSubjUid;
     @Inject
-    private PeerRepository mPeerRepository;
+    PeerRepository mPeerRepository;
 
     public UserDetailFragment() {
     }

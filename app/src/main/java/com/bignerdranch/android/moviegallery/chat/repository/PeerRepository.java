@@ -1,6 +1,8 @@
 package com.bignerdranch.android.moviegallery.chat.repository;
 
 
+import android.util.Log;
+
 import com.bignerdranch.android.moviegallery.chat.room.AppDatabase;
 import com.bignerdranch.android.moviegallery.chat.room.PeerDao;
 import com.bignerdranch.android.moviegallery.chat.room.entity.Peer;
@@ -13,12 +15,10 @@ import javax.inject.Inject;
 
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.core.MaybeObserver;
-import io.reactivex.rxjava3.core.MaybeSource;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.core.SingleObserver;
 import io.reactivex.rxjava3.core.SingleSource;
-import io.reactivex.rxjava3.functions.Function;
+import io.reactivex.rxjava3.functions.Action;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class PeerRepository {
@@ -35,7 +35,7 @@ public class PeerRepository {
     }
 
     public Single<Peer> fetchById(int uid) {
-        return peerDao.selectById(uid)
+        return peerDao.selectByIdAsync(uid)
                 .subscribeOn(Schedulers.io())
                 .switchIfEmpty(new SingleSource<Peer>() {
                     @Override
@@ -48,7 +48,7 @@ public class PeerRepository {
                             peer.avatar = body.getAvatar();
                             peer.nickname = body.getNickname();
 
-                            peerDao.insert(peer).subscribe();
+                            peerDao.insertAsync(peer).subscribe();
 
                             Single.just(peer).subscribe(observer);
                         } catch (IOException e) {
@@ -72,11 +72,20 @@ public class PeerRepository {
                         .execute(new Runnable() {
                             @Override
                             public void run() {
-                                final Peer ePeer = peerDao.selectById(peer.uid).blockingGet();
+                                Log.i(PeerRepository.this.getClass().getSimpleName(), "update_local_peer:" + peer);
+                                final Peer ePeer = peerDao.selectByIdAsync(peer.uid).blockingGet();
                                 if (ePeer == null) {
+                                    Log.i(PeerRepository.this.getClass().getSimpleName(), "update_local_peer ignore, peer_not_exist:" + peer);
                                     return;
                                 }
-                                peerDao.update(peer);
+                                peerDao.updateAsync(peer)
+                                        .doOnComplete(new Action() {
+                                            @Override
+                                            public void run() throws Throwable {
+                                                Log.i(PeerRepository.this.getClass().getSimpleName(), "update_local_peer success:" + peer);
+                                            }
+                                        })
+                                        .subscribe();
 
                             }
                         });

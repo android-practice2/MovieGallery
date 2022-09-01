@@ -19,11 +19,11 @@ public interface PeerDao {
 
 
     @Query("SELECT * FROM Peer WHERE uid =:uid")
-    Maybe<Peer> selectById(int uid);
+    Maybe<Peer> selectByIdAsync(int uid);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    Completable insert(Peer peer);
+    Completable insertAsync(Peer peer);
 
     @Update(onConflict = OnConflictStrategy.REPLACE)
-    Completable update(Peer peer);
+    Completable updateAsync(Peer peer);
 }
