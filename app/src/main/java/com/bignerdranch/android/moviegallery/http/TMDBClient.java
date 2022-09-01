@@ -1,7 +1,7 @@
-package com.bignerdranch.android.moviegallery.integration;
+package com.bignerdranch.android.moviegallery.http;
 
-import com.bignerdranch.android.moviegallery.integration.model.ListResponse;
-import com.bignerdranch.android.moviegallery.integration.model.Movie;
+import com.bignerdranch.android.moviegallery.http.model.ListResponse;
+import com.bignerdranch.android.moviegallery.http.model.Movie;
 
 import io.reactivex.rxjava3.core.Single;
 import retrofit2.http.GET;

@@ -36,8 +36,8 @@ import com.bignerdranch.android.moviegallery.chat.room.entity.Peer;
 import com.bignerdranch.android.moviegallery.constants.Constants;
 import com.bignerdranch.android.moviegallery.databinding.ActivityChatBinding;
 import com.bignerdranch.android.moviegallery.databinding.ViewHolderMessagePeerBinding;
-import com.bignerdranch.android.moviegallery.integration.AppClient;
-import com.bignerdranch.android.moviegallery.integration.model.ChatPostMsg;
+import com.bignerdranch.android.moviegallery.http.AppClient;
+import com.bignerdranch.android.moviegallery.http.model.ChatPostMsg;
 import com.bignerdranch.android.moviegallery.mqtt.AppMqttClient;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
@@ -281,7 +281,12 @@ public class ChatActivity extends BaseActivity {
                     return;
                 }
                 if (item.type == Message.TYPE_ME) {
-                    mBinding.recyclerView.scrollToPosition(mBinding.recyclerView.getAdapter().getItemCount() - 1);
+                    mBinding.recyclerView.scrollToPosition(adapter.getItemCount() - 1);
+                } else {
+                    int lPos = layoutManager.findLastCompletelyVisibleItemPosition();
+                    if (lPos == position - 1) {
+                        mBinding.recyclerView.scrollToPosition(adapter.getItemCount() - 1);
+                    }
                 }
             }
         });

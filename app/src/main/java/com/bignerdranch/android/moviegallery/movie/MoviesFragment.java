@@ -1,6 +1,15 @@
 package com.bignerdranch.android.moviegallery.movie;
 
 import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.SearchView;
@@ -14,21 +23,11 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.preference.PreferenceManager;
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Toast;
-
 import com.bignerdranch.android.moviegallery.BaseFragment;
 import com.bignerdranch.android.moviegallery.MyLoadStateAdapter;
 import com.bignerdranch.android.moviegallery.R;
 import com.bignerdranch.android.moviegallery.databinding.FragmentMoviesBinding;
-import com.bignerdranch.android.moviegallery.integration.model.Movie;
+import com.bignerdranch.android.moviegallery.http.model.Movie;
 import com.bignerdranch.android.moviegallery.util.MovieDiff;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
@@ -248,7 +247,7 @@ public class MoviesFragment extends BaseFragment {
             mMovieBinding.movieTitle.setText(item.getTitle());
             mMovieBinding.releaseDate.setText(item.getRelease_date());
             mMovieBinding.popularity.setText(String.valueOf(item.getPopularity()));
-            mMovieBinding.voteAverage.setText(String.valueOf(item.getVote_average()) + "/" + String.valueOf(item.getVote_count()));
+            mMovieBinding.voteAverage.setText(item.getVote_average() + "/" + item.getVote_count());
         }
     }
 }

@@ -8,7 +8,7 @@ import androidx.hilt.work.HiltWorker;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
-import com.bignerdranch.android.moviegallery.integration.AppClient;
+import com.bignerdranch.android.moviegallery.http.AppClient;
 
 import dagger.assisted.Assisted;
 import dagger.assisted.AssistedInject;

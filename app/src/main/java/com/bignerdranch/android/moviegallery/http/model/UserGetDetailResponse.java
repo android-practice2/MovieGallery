@@ -1,18 +1,23 @@
-package com.bignerdranch.android.moviegallery.integration.model;
+package com.bignerdranch.android.moviegallery.http.model;
 
 
-import javax.validation.constraints.NotEmpty;
+public class UserGetDetailResponse {
+    private Integer uid;
 
-public class UserRegisterRequest {
-
-
-    @NotEmpty
     private String nickname;
 
     private String avatar;
 
-    @NotEmpty
     private String phone_number;
+
+
+    public Integer getUid() {
+        return uid;
+    }
+
+    public void setUid(Integer uid) {
+        this.uid = uid;
+    }
 
     public String getNickname() {
         return nickname;
@@ -41,7 +46,8 @@ public class UserRegisterRequest {
     @Override
     public String toString() {
         return "{" +
-                "nickname='" + nickname + '\'' +
+                "uid=" + uid +
+                ", nickname='" + nickname + '\'' +
                 ", avatar='" + avatar + '\'' +
                 ", phone_number='" + phone_number + '\'' +
                 '}';

@@ -17,10 +17,10 @@ import androidx.paging.rxjava3.PagingRx;
 import androidx.paging.rxjava3.RxPagingSource;
 
 import com.bignerdranch.android.moviegallery.constants.Constants;
-import com.bignerdranch.android.moviegallery.integration.AppClient;
-import com.bignerdranch.android.moviegallery.integration.model.FriendsListRequest;
-import com.bignerdranch.android.moviegallery.integration.model.PageResponseWrapper;
-import com.bignerdranch.android.moviegallery.integration.model.User;
+import com.bignerdranch.android.moviegallery.http.AppClient;
+import com.bignerdranch.android.moviegallery.http.model.FriendsListRequest;
+import com.bignerdranch.android.moviegallery.http.model.PageResponseWrapper;
+import com.bignerdranch.android.moviegallery.http.model.User;
 
 import javax.inject.Inject;
 

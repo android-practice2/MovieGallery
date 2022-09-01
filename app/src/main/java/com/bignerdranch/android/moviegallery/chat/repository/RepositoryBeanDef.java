@@ -4,7 +4,7 @@ import com.bignerdranch.android.moviegallery.chat.room.AppDatabase;
 import com.bignerdranch.android.moviegallery.chat.room.CommunicationDao;
 import com.bignerdranch.android.moviegallery.chat.room.MessageDao;
 import com.bignerdranch.android.moviegallery.chat.room.PeerDao;
-import com.bignerdranch.android.moviegallery.integration.AppClient;
+import com.bignerdranch.android.moviegallery.http.AppClient;
 
 import javax.inject.Singleton;
 

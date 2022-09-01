@@ -3,7 +3,7 @@ package com.bignerdranch.android.moviegallery.util;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.DiffUtil;
 
-import com.bignerdranch.android.moviegallery.integration.model.User;
+import com.bignerdranch.android.moviegallery.http.model.User;
 
 public class UserDiff extends DiffUtil.ItemCallback<User>{
     @Override

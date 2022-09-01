@@ -1,19 +1,18 @@
-package com.bignerdranch.android.moviegallery.integration;
+package com.bignerdranch.android.moviegallery.http;
 
 
-import com.bignerdranch.android.moviegallery.integration.model.ChatPostMsg;
-import com.bignerdranch.android.moviegallery.integration.model.FriendsAddRequest;
-import com.bignerdranch.android.moviegallery.integration.model.FriendsListRequest;
-import com.bignerdranch.android.moviegallery.integration.model.PageResponseWrapper;
-import com.bignerdranch.android.moviegallery.integration.model.RequestTokenResponse;
-import com.bignerdranch.android.moviegallery.integration.model.User;
-import com.bignerdranch.android.moviegallery.integration.model.UserGeoLocationAddLocationRequest;
-import com.bignerdranch.android.moviegallery.integration.model.UserGeoLocationSearchNearbyRequest;
-import com.bignerdranch.android.moviegallery.integration.model.UserGetDetailResponse;
-import com.bignerdranch.android.moviegallery.integration.model.UserGetDetailV2Response;
-import com.bignerdranch.android.moviegallery.integration.model.UserLocationProjection;
-import com.bignerdranch.android.moviegallery.integration.model.UserRegisterRequest;
-import com.bignerdranch.android.moviegallery.integration.model.UserUpdateAvatarRequest;
+import com.bignerdranch.android.moviegallery.http.model.ChatPostMsg;
+import com.bignerdranch.android.moviegallery.http.model.FriendsAddRequest;
+import com.bignerdranch.android.moviegallery.http.model.FriendsListRequest;
+import com.bignerdranch.android.moviegallery.http.model.PageResponseWrapper;
+import com.bignerdranch.android.moviegallery.http.model.RequestTokenResponse;
+import com.bignerdranch.android.moviegallery.http.model.User;
+import com.bignerdranch.android.moviegallery.http.model.UserGeoLocationAddLocationRequest;
+import com.bignerdranch.android.moviegallery.http.model.UserGeoLocationSearchNearbyRequest;
+import com.bignerdranch.android.moviegallery.http.model.UserGetDetailResponse;
+import com.bignerdranch.android.moviegallery.http.model.UserLocationProjection;
+import com.bignerdranch.android.moviegallery.http.model.UserRegisterRequest;
+import com.bignerdranch.android.moviegallery.http.model.UserUpdateAvatarRequest;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 

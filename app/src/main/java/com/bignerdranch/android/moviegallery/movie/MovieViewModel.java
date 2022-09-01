@@ -9,17 +9,15 @@ import androidx.lifecycle.ViewModelKt;
 import androidx.paging.Pager;
 import androidx.paging.PagingConfig;
 import androidx.paging.PagingData;
-import androidx.paging.PagingSource;
 import androidx.paging.PagingState;
 import androidx.paging.rxjava3.PagingRx;
 import androidx.paging.rxjava3.RxPagingSource;
 
-import com.bignerdranch.android.moviegallery.integration.TMDBClient;
-import com.bignerdranch.android.moviegallery.integration.model.ListResponse;
-import com.bignerdranch.android.moviegallery.integration.model.Movie;
+import com.bignerdranch.android.moviegallery.http.TMDBClient;
+import com.bignerdranch.android.moviegallery.http.model.ListResponse;
+import com.bignerdranch.android.moviegallery.http.model.Movie;
 
 import java.util.List;
-import java.util.concurrent.Callable;
 
 import javax.inject.Inject;
 

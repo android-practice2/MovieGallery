@@ -1,4 +1,4 @@
-package com.bignerdranch.android.moviegallery.integration.model;
+package com.bignerdranch.android.moviegallery.http.model;
 
 
 

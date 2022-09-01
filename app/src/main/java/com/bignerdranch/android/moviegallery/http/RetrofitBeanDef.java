@@ -1,11 +1,7 @@
-package com.bignerdranch.android.moviegallery.integration;
+package com.bignerdranch.android.moviegallery.http;
 
 import com.bignerdranch.android.moviegallery.BuildConfig;
-import com.bignerdranch.android.moviegallery.constants.Constants;
-import com.bignerdranch.android.moviegallery.integration.AppClient;
-import com.bignerdranch.android.moviegallery.integration.TMDBClient;
 
-import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 import javax.inject.Singleton;

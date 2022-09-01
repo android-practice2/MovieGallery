@@ -15,9 +15,9 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bignerdranch.android.moviegallery.constants.Constants;
-import com.bignerdranch.android.moviegallery.integration.AppClient;
-import com.bignerdranch.android.moviegallery.integration.model.User;
-import com.bignerdranch.android.moviegallery.integration.model.UserRegisterRequest;
+import com.bignerdranch.android.moviegallery.http.AppClient;
+import com.bignerdranch.android.moviegallery.http.model.User;
+import com.bignerdranch.android.moviegallery.http.model.UserRegisterRequest;
 
 import javax.inject.Inject;
 

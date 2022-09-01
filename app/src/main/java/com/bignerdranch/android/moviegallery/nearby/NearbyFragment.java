@@ -35,9 +35,9 @@ import com.bignerdranch.android.moviegallery.NearbyDetailActivity;
 import com.bignerdranch.android.moviegallery.R;
 import com.bignerdranch.android.moviegallery.databinding.FragmentNearbyBinding;
 import com.bignerdranch.android.moviegallery.databinding.ViewHolderNearbyBinding;
-import com.bignerdranch.android.moviegallery.integration.AppClient;
-import com.bignerdranch.android.moviegallery.integration.model.UserGeoLocationAddLocationRequest;
-import com.bignerdranch.android.moviegallery.integration.model.UserLocationProjection;
+import com.bignerdranch.android.moviegallery.http.AppClient;
+import com.bignerdranch.android.moviegallery.http.model.UserGeoLocationAddLocationRequest;
+import com.bignerdranch.android.moviegallery.http.model.UserLocationProjection;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 

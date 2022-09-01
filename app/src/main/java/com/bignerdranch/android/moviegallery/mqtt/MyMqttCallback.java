@@ -4,7 +4,7 @@ import android.util.Log;
 
 import com.bignerdranch.android.moviegallery.chat.repository.MessageRepository;
 import com.bignerdranch.android.moviegallery.chat.room.entity.Message;
-import com.bignerdranch.android.moviegallery.integration.model.ChatPostMsg;
+import com.bignerdranch.android.moviegallery.http.model.ChatPostMsg;
 import com.bignerdranch.android.moviegallery.util.JsonUtil;
 
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;

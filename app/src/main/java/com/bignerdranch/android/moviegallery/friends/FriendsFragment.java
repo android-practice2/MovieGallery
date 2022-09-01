@@ -24,8 +24,8 @@ import com.bignerdranch.android.moviegallery.NearbyDetailActivity;
 import com.bignerdranch.android.moviegallery.R;
 import com.bignerdranch.android.moviegallery.databinding.FragmentFriendsBinding;
 import com.bignerdranch.android.moviegallery.databinding.ViewHolderFriendsBinding;
-import com.bignerdranch.android.moviegallery.integration.AppClient;
-import com.bignerdranch.android.moviegallery.integration.model.User;
+import com.bignerdranch.android.moviegallery.http.AppClient;
+import com.bignerdranch.android.moviegallery.http.model.User;
 import com.bignerdranch.android.moviegallery.util.UserDiff;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
@@ -135,7 +135,7 @@ public class FriendsFragment extends BaseFragment {
             }
 
             mBind.uid.setText(item.getUid().toString());
-            mBind.nickname.setText(item.getNickname().toString());
+            mBind.nickname.setText(item.getNickname());
         }
     }
 }

@@ -17,14 +17,12 @@ import androidx.paging.rxjava3.PagingRx;
 import androidx.paging.rxjava3.RxPagingSource;
 
 import com.bignerdranch.android.moviegallery.constants.Constants;
-import com.bignerdranch.android.moviegallery.integration.AppClient;
-import com.bignerdranch.android.moviegallery.integration.model.PageResponseWrapper;
-import com.bignerdranch.android.moviegallery.integration.model.User;
-import com.bignerdranch.android.moviegallery.integration.model.UserGeoLocationSearchNearbyRequest;
-import com.bignerdranch.android.moviegallery.integration.model.UserLocationProjection;
+import com.bignerdranch.android.moviegallery.http.AppClient;
+import com.bignerdranch.android.moviegallery.http.model.PageResponseWrapper;
+import com.bignerdranch.android.moviegallery.http.model.UserGeoLocationSearchNearbyRequest;
+import com.bignerdranch.android.moviegallery.http.model.UserLocationProjection;
 
 import java.util.Collections;
-import java.util.List;
 
 import javax.inject.Inject;
 
@@ -42,7 +40,7 @@ public class NearbyViewModel extends ViewModel {
 
     private Flowable<PagingData<UserLocationProjection>> mFlowable;
     private NearbyPagingSource mNearbyPagingSource;
-    private AppClient mAppClient;
+    private final AppClient mAppClient;
 
     private Location location;
 

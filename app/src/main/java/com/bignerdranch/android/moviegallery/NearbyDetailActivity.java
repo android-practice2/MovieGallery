@@ -12,8 +12,8 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import com.bignerdranch.android.moviegallery.chat.ChatActivity;
 import com.bignerdranch.android.moviegallery.constants.Constants;
 import com.bignerdranch.android.moviegallery.databinding.ActivityNearbyDetailBinding;
-import com.bignerdranch.android.moviegallery.integration.AppClient;
-import com.bignerdranch.android.moviegallery.integration.model.FriendsAddRequest;
+import com.bignerdranch.android.moviegallery.http.AppClient;
+import com.bignerdranch.android.moviegallery.http.model.FriendsAddRequest;
 
 import javax.inject.Inject;
 

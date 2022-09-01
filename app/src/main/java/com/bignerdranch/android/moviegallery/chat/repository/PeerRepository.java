@@ -6,8 +6,8 @@ import android.util.Log;
 import com.bignerdranch.android.moviegallery.chat.room.AppDatabase;
 import com.bignerdranch.android.moviegallery.chat.room.PeerDao;
 import com.bignerdranch.android.moviegallery.chat.room.entity.Peer;
-import com.bignerdranch.android.moviegallery.integration.AppClient;
-import com.bignerdranch.android.moviegallery.integration.model.UserGetDetailResponse;
+import com.bignerdranch.android.moviegallery.http.AppClient;
+import com.bignerdranch.android.moviegallery.http.model.UserGetDetailResponse;
 
 import java.io.IOException;
 
