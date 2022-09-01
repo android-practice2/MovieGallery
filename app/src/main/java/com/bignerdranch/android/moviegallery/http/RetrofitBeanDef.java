@@ -10,6 +10,7 @@ import dagger.Module;
 import dagger.Provides;
 import dagger.hilt.InstallIn;
 import dagger.hilt.components.SingletonComponent;
+import okhttp3.ConnectionPool;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -26,6 +27,38 @@ public class RetrofitBeanDef {
 
     @Provides
     @Singleton
+    public static AppClient sMyClient() {
+        // Create OkHttp Client
+        OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder();
+        clientBuilder.connectTimeout(3000, TimeUnit.MILLISECONDS);
+        clientBuilder.readTimeout(5000, TimeUnit.MILLISECONDS);
+        clientBuilder.writeTimeout(5000, TimeUnit.MILLISECONDS);
+        ConnectionPool connectionPool = new ConnectionPool(10, 3, TimeUnit.DAYS);
+        clientBuilder.connectionPool(connectionPool);
+
+        // Add interceptor to add API key as query string parameter to each request
+        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor(HttpLoggingInterceptor.Logger.DEFAULT);
+        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BASIC);
+
+        clientBuilder
+                .addInterceptor(loggingInterceptor);
+
+        // Create retrofit instance
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(BASE_URL)
+                .client(clientBuilder.build())
+                // Add Gson converter
+                .addConverterFactory(GsonConverterFactory.create())
+//                .addConverterFactory(ScalarsConverterFactory.create())
+                // Add RxJava spport for Retrofit
+                .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
+                .build();
+        // Init APIInterface
+        return retrofit.create(AppClient.class);
+    }
+
+    @Provides
+    @Singleton
     public static TMDBClient sTMDBClient() {
 
         // Create OkHttp Client
@@ -33,6 +66,8 @@ public class RetrofitBeanDef {
         clientBuilder.connectTimeout(3000, TimeUnit.MILLISECONDS);
         clientBuilder.readTimeout(5000, TimeUnit.MILLISECONDS);
         clientBuilder.writeTimeout(5000, TimeUnit.MILLISECONDS);
+        ConnectionPool connectionPool = new ConnectionPool(10, 3, TimeUnit.DAYS);
+        clientBuilder.connectionPool(connectionPool);
 
         // Add interceptor to add API key as query string parameter to each request
         HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor(HttpLoggingInterceptor.Logger.DEFAULT);
@@ -64,36 +99,6 @@ public class RetrofitBeanDef {
                 .build();
         // Init APIInterface
         return retrofit.create(TMDBClient.class);
-    }
-
-    @Provides
-    @Singleton
-    public static AppClient sMyClient() {
-        // Create OkHttp Client
-        OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder();
-        clientBuilder.connectTimeout(3000, TimeUnit.MILLISECONDS);
-        clientBuilder.readTimeout(3000, TimeUnit.MILLISECONDS);
-        clientBuilder.writeTimeout(3000, TimeUnit.MILLISECONDS);
-
-        // Add interceptor to add API key as query string parameter to each request
-        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor(HttpLoggingInterceptor.Logger.DEFAULT);
-        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BASIC);
-
-        clientBuilder
-                .addInterceptor(loggingInterceptor);
-
-        // Create retrofit instance
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(BASE_URL)
-                .client(clientBuilder.build())
-                // Add Gson converter
-                .addConverterFactory(GsonConverterFactory.create())
-//                .addConverterFactory(ScalarsConverterFactory.create())
-                // Add RxJava spport for Retrofit
-                .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
-                .build();
-        // Init APIInterface
-        return retrofit.create(AppClient.class);
     }
 
 
